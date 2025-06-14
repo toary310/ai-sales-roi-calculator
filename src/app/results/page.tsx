@@ -1,5 +1,11 @@
 "use client"
 
+import {
+    CostAnalysisChart,
+    ImpactComparisonChart,
+    ROITrendChart,
+    RevenueForecastChart
+} from "@/components/charts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useROIStore } from "@/lib/store/roi-store"
@@ -150,28 +156,8 @@ export default function ResultsPage() {
           </CardContent>
         </Card>
 
-        {/* グラフエリア（プレースホルダー） */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              ROI推移グラフ
-            </CardTitle>
-            <CardDescription>12ヶ月間のROI推移予測</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  グラフコンポーネント
-                  <br />
-                  (Chart.js / Recharts)
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* ROI推移グラフ */}
+        <ROITrendChart data={calculationResult.monthlyProjection} />
       </div>
 
       {/* 詳細データ */}
@@ -236,6 +222,21 @@ export default function ResultsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* データビジュアライゼーション */}
+      <div className="space-y-8 mb-12">
+        {/* 効果比較ダッシュボード */}
+        <ImpactComparisonChart calculationResult={calculationResult} />
+
+        {/* 収益予測と コスト分析 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <RevenueForecastChart
+            data={calculationResult.monthlyProjection}
+            currentSales={calculationResult.currentMetrics.monthlySales}
+          />
+          <CostAnalysisChart data={calculationResult.monthlyProjection} />
+        </div>
+      </div>
 
       {/* アクションボタン */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center">

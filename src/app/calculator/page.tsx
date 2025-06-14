@@ -1,10 +1,20 @@
+"use client"
+
 import { ROICalculatorForm } from "@/components/forms/roi-calculator-form"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Calculator, Clock, DollarSign, TrendingUp, Users } from "lucide-react"
+import { calculateSampleROI } from "@/lib/store/roi-store"
+import { Calculator, DollarSign, TrendingUp, Users, Zap } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function CalculatorPage() {
+  const router = useRouter()
+
+  const handleSampleCalculation = async () => {
+    await calculateSampleROI()
+    router.push('/results')
+  }
   return (
     <div className="container py-8 md:py-12">
       {/* ページヘッダー */}
@@ -148,8 +158,13 @@ export default function CalculatorPage() {
                 </DialogContent>
               </Dialog>
 
-              <Button variant="outline" size="lg" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
+              <Button
+                variant="outline"
+                size="lg"
+                className="flex items-center gap-2"
+                onClick={handleSampleCalculation}
+              >
+                <Zap className="h-4 w-4" />
                 サンプルデータで試す
               </Button>
             </div>
