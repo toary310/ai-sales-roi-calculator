@@ -1,5 +1,6 @@
 "use client"
 
+import { AIAnalysisSection } from "@/components/ai/ai-analysis-section"
 import {
     CostAnalysisChart,
     ImpactComparisonChart,
@@ -20,9 +21,41 @@ import {
     TrendingUp
 } from "lucide-react"
 import Link from "next/link"
+import React from "react"
 
 export default function ResultsPage() {
   const { calculationResult, formData, clearResults } = useROIStore()
+  const [isGeneratingReport, setIsGeneratingReport] = React.useState(false)
+
+  const handleDownloadReport = async () => {
+    try {
+      setIsGeneratingReport(true)
+
+      // AI分析結果を取得（もしあれば）
+      let aiAnalysis = null
+      try {
+        const response = await fetch('/api/ai-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(calculationResult),
+        })
+        if (response.ok) {
+          aiAnalysis = await response.json()
+        }
+      } catch (error) {
+        console.log('AI分析の取得をスキップ:', error)
+      }
+
+      // PDFレポート生成
+      const { PDFReportGenerator } = await import('@/lib/report/pdf-generator')
+      await PDFReportGenerator.generateReport(calculationResult, aiAnalysis)
+    } catch (error) {
+      console.error('レポート生成エラー:', error)
+      alert('レポートの生成に失敗しました。もう一度お試しください。')
+    } finally {
+      setIsGeneratingReport(false)
+    }
+  }
 
   // 計算結果がない場合の処理
   if (!calculationResult || !formData) {
@@ -238,11 +271,19 @@ export default function ResultsPage() {
         </div>
       </div>
 
-      {/* アクションボタン */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Button size="lg" className="flex items-center gap-2">
+      {/* AI分析セクション */}
+      <AIAnalysisSection roiData={calculationResult} />
+
+      {/* アクションボタン - フッターとAI分析の間の中央配置 */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center my-8">
+        <Button
+          size="lg"
+          className="flex items-center gap-2"
+          onClick={handleDownloadReport}
+          disabled={isGeneratingReport}
+        >
           <Download className="h-4 w-4" />
-          レポートをダウンロード
+          {isGeneratingReport ? 'レポート生成中...' : 'CSVレポートをダウンロード'}
         </Button>
         <Button asChild variant="outline" size="lg">
           <Link href="/calculator" className="flex items-center gap-2">
