@@ -3,6 +3,8 @@ import { Calculator, Github, Mail, Twitter } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
+  const currentYear = new Date().getFullYear()
+
   return (
     <footer className="border-t bg-background">
       <div className="container py-8 md:py-12">

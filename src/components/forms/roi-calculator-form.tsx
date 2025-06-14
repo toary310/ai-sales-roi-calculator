@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
+import { CurrencyInput } from "@/components/ui/currency-input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -146,10 +147,9 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月間売上（円）</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormDescription>
@@ -167,10 +167,9 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月間営業コスト（円）</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormDescription>
@@ -188,10 +187,9 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>平均取引額（円）</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormDescription>
@@ -314,10 +312,9 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>初期費用（円）</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormDescription>
@@ -335,10 +332,9 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月額費用（円）</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <CurrencyInput
+                        value={field.value}
+                        onChange={field.onChange}
                       />
                     </FormControl>
                     <FormDescription>
