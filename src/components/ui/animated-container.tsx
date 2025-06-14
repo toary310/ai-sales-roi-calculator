@@ -31,7 +31,7 @@ export function AnimatedContainer({
       transition: {
         duration,
         delay,
-        ease: "easeOut"
+        ease: [0.25, 0.1, 0.25, 1]
       }
     }
   }
@@ -41,7 +41,7 @@ export function AnimatedContainer({
       className={className}
       initial="hidden"
       animate="visible"
-      variants={variants}
+      variants={variants as any}
     >
       {children}
     </motion.div>
@@ -73,7 +73,7 @@ export function StaggerContainer({
       className={className}
       initial="hidden"
       animate="visible"
-      variants={containerVariants}
+      variants={containerVariants as any}
     >
       {children}
     </motion.div>
@@ -95,7 +95,7 @@ export function StaggerItem({
       y: 0,
       transition: {
         duration: 0.5,
-        ease: "easeOut"
+        ease: [0.25, 0.1, 0.25, 1]
       }
     }
   }
@@ -103,7 +103,7 @@ export function StaggerItem({
   return (
     <motion.div
       className={className}
-      variants={itemVariants}
+      variants={itemVariants as any}
     >
       {children}
     </motion.div>

@@ -1,5 +1,5 @@
 import { AIAnalysisService } from '@/lib/ai/analysis-service'
-import { ROIData } from '@/types/roi'
+import { ROIData } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {

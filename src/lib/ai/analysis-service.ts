@@ -1,4 +1,4 @@
-import { ROIData } from '@/types/roi'
+import { ROIData } from '@/types'
 import OpenAI from 'openai'
 
 // OpenAI クライアントの初期化
@@ -100,12 +100,12 @@ export class AIAnalysisService {
 
   private static buildAnalysisPrompt(roiData: ROIData): string {
     // データの安全な取得（undefinedチェック）
-    const monthlySales = roiData.currentMetrics?.monthlySales || roiData.monthlySales || 0
-    const salesCost = roiData.currentMetrics?.salesCost || roiData.salesCost || 0
-    const averageDealSize = roiData.currentMetrics?.averageDealSize || roiData.averageDealSize || 0
-    const conversionRate = roiData.currentMetrics?.conversionRate || roiData.conversionRate || 0
-    const salesCycleLength = roiData.currentMetrics?.salesCycleLength || roiData.salesCycleLength || 0
-    const salesTeamSize = roiData.currentMetrics?.salesTeamSize || roiData.salesTeamSize || 0
+    const monthlySales = roiData.currentMetrics?.monthlySales || 0
+    const salesCost = roiData.currentMetrics?.salesCost || 0
+    const averageDealSize = roiData.currentMetrics?.averageDealSize || 0
+    const conversionRate = roiData.currentMetrics?.conversionRate || 0
+    const salesCycleLength = roiData.currentMetrics?.salesCycleLength || 0
+    const salesTeamSize = roiData.currentMetrics?.salesTeamSize || 0
 
     const industry = roiData.industry || '不明'
     const companySize = roiData.companySize || '不明'
@@ -114,12 +114,8 @@ export class AIAnalysisService {
     const monthlyCost = roiData.monthlyCost || 0
     const implementationPeriod = roiData.implementationPeriod || 0
 
-    const efficiencyImprovement = Array.isArray(roiData.efficiencyImprovement)
-      ? roiData.efficiencyImprovement[0]
-      : roiData.efficiencyImprovement || 0
-    const conversionImprovement = Array.isArray(roiData.conversionImprovement)
-      ? roiData.conversionImprovement[0]
-      : roiData.conversionImprovement || 0
+    const efficiencyImprovement = roiData.calculationParams?.efficiencyImprovement || 0
+    const conversionImprovement = roiData.calculationParams?.conversionImprovement || 0
 
     const roi = roiData.roi || 0
     const paybackPeriod = roiData.paybackPeriod || 0
@@ -195,7 +191,7 @@ ${industry}業界の${companySize}企業におけるAI営業ツール導入計�
     const industry = roiData.industry || '対象'
     const roi = roiData.roi || 0
     const paybackPeriod = roiData.paybackPeriod || 0
-    const monthlySales = roiData.currentMetrics?.monthlySales || roiData.monthlySales || 0
+    const monthlySales = roiData.currentMetrics?.monthlySales || 0
     const companySize = roiData.companySize || '中小企業'
 
     // ROIに基づく動的な分析
@@ -220,7 +216,7 @@ ${industry}業界の${companySize}企業におけるAI営業ツール導入計�
       keyInsights: [
         `月間売上${Math.round(monthlySales / 10000)}万円規模での${roi}%ROIは実現可能な目標です`,
         `${paybackPeriod}ヶ月での投資回収は${industry}業界では${paybackPeriod <= 15 ? '優秀' : '標準的'}な水準です`,
-        `営業効率${roiData.efficiencyImprovement || 20}%改善により、年間${Math.round((roiData.annualNetProfit || 0) / 10000)}万円の利益向上が期待されます`,
+        `営業効率${roiData.calculationParams?.efficiencyImprovement || 20}%改善により、年間${Math.round((roiData.annualNetProfit || 0) / 10000)}万円の利益向上が期待されます`,
         '継続的なAIモデル最適化により、導入2年目以降はさらなる効果向上が見込まれます'
       ]
     }

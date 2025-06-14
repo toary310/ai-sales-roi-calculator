@@ -7,18 +7,18 @@ export interface ROIFormData {
   averageDealSize: number
   conversionRate: number
   salesCycleLength: number
-  
+
   // AI導入計画
   aiToolType: string
   initialCost: number
   monthlyCost: number
   implementationPeriod: number
-  
+
   // 期待効果
   efficiencyImprovement: number[]
   conversionImprovement: number[]
   timeReduction: number[]
-  
+
   // その他
   industry: string
   companySize: string
@@ -33,13 +33,13 @@ export interface ROICalculationResult {
   paybackPeriod: number // 投資回収期間（ヶ月）
   totalSavings: number // 年間総削減額
   monthlySavings: number // 月間削減額
-  
+
   // 効果分析
   efficiencyGain: number // 営業効率向上率 (%)
   revenueIncrease: number // 売上増加率 (%)
   costReduction: number // コスト削減額
   timeReductionHours: number // 削減時間（時間/月）
-  
+
   // 詳細データ
   currentMetrics: {
     monthlySales: number
@@ -47,14 +47,14 @@ export interface ROICalculationResult {
     dealsPerMonth: number
     salesPerPerson: number
   }
-  
+
   projectedMetrics: {
     monthlySales: number
     monthlyCost: number
     dealsPerMonth: number
     salesPerPerson: number
   }
-  
+
   // AI導入コスト
   aiCosts: {
     initialCost: number
@@ -62,10 +62,10 @@ export interface ROICalculationResult {
     annualCost: number
     totalCostYear1: number
   }
-  
+
   // 月別推移データ（12ヶ月）
   monthlyProjection: MonthlyProjection[]
-  
+
   // 計算に使用したパラメータ
   calculationParams: {
     efficiencyImprovement: number
@@ -102,4 +102,31 @@ export interface CompanySizeMultiplier {
   efficiencyMultiplier: number
   costMultiplier: number
   implementationMultiplier: number
+}
+
+// AI分析用のROIデータ型（ROICalculationResultの拡張）
+export interface ROIData extends Omit<ROICalculationResult, 'currentMetrics'> {
+  // フォームデータからの追加情報
+  industry?: string
+  companySize?: string
+  aiToolType?: string
+  initialCost?: number
+  monthlyCost?: number
+  implementationPeriod?: number
+
+  // 計算結果の追加フィールド
+  annualNetProfit?: number
+
+  // 現在のメトリクスの拡張（オプショナル）
+  currentMetrics?: {
+    monthlySales: number
+    monthlyCost: number
+    dealsPerMonth: number
+    salesPerPerson: number
+    salesTeamSize?: number
+    salesCost?: number
+    averageDealSize?: number
+    conversionRate?: number
+    salesCycleLength?: number
+  }
 }

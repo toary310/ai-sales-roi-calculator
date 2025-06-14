@@ -28,6 +28,11 @@ export default function ResultsPage() {
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false)
 
   const handleDownloadReport = async () => {
+    if (!calculationResult) {
+      alert('計算結果がありません。')
+      return
+    }
+
     try {
       setIsGeneratingReport(true)
 

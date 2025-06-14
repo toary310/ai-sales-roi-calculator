@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AIAnalysisResult } from '@/lib/ai/analysis-service'
-import { ROIData } from '@/types/roi'
+import { ROIData } from '@/types'
 import { AlertTriangle, Brain, Lightbulb, Target, TrendingUp, Zap } from "lucide-react"
 import { useEffect, useState } from 'react'
 
@@ -20,15 +20,16 @@ export function AIAnalysisSection({ roiData }: AIAnalysisSectionProps) {
 
   useEffect(() => {
     generateAnalysis()
-  }, [roiData])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roiData]) // generateAnalysisは安定した関数なので依存関係に含めない
 
   const generateAnalysis = async () => {
+    const startTime = Date.now()
     try {
       setLoading(true)
       setError(null)
 
       console.log('🎯 UI: AI分析リクエスト開始')
-      const startTime = Date.now()
 
       const response = await fetch('/api/ai-analysis', {
         method: 'POST',
