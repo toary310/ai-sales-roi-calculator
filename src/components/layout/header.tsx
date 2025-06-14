@@ -7,6 +7,7 @@ import {
     NavigationMenuLink,
     NavigationMenuList
 } from "@/components/ui/navigation-menu"
+import { ThemeToggle } from "@/components/ui/theme-toggle"
 import { BarChart3, Calculator, Info } from "lucide-react"
 import Link from "next/link"
 
@@ -62,6 +63,7 @@ export function Header() {
 
         {/* CTA ボタン */}
         <div className="flex items-center space-x-2">
+          <ThemeToggle />
           <Button asChild className="hidden sm:inline-flex">
             <Link href="/calculator">
               <Calculator className="mr-2 h-4 w-4" />
