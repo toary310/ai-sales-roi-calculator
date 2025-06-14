@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Brain, TrendingUp, AlertTriangle, Lightbulb, Target, Zap } from "lucide-react"
-import { ROIData } from '@/types/roi'
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 import { AIAnalysisResult } from '@/lib/ai/analysis-service'
+import { ROIData } from '@/types/roi'
+import { AlertTriangle, Brain, Lightbulb, Target, TrendingUp, Zap } from "lucide-react"
+import { useEffect, useState } from 'react'
 
 interface AIAnalysisSectionProps {
   roiData: ROIData
@@ -27,6 +27,9 @@ export function AIAnalysisSection({ roiData }: AIAnalysisSectionProps) {
       setLoading(true)
       setError(null)
 
+      console.log('🎯 UI: AI分析リクエスト開始')
+      const startTime = Date.now()
+
       const response = await fetch('/api/ai-analysis', {
         method: 'POST',
         headers: {
@@ -40,9 +43,23 @@ export function AIAnalysisSection({ roiData }: AIAnalysisSectionProps) {
       }
 
       const result = await response.json()
+      const duration = Date.now() - startTime
+
+      console.log('✅ UI: AI分析完了:', {
+        duration: `${duration}ms`,
+        confidenceLevel: result.confidenceLevel,
+        hasRecommendations: result.recommendations?.length > 0,
+        timestamp: new Date().toISOString()
+      })
+
       setAnalysis(result)
     } catch (err) {
-      console.error('AI分析エラー:', err)
+      const duration = Date.now() - startTime
+      console.error('❌ UI: AI分析エラー:', {
+        error: err instanceof Error ? err.message : 'Unknown error',
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString()
+      })
       setError(err instanceof Error ? err.message : '分析生成に失敗しました')
     } finally {
       setLoading(false)
@@ -118,8 +135,8 @@ export function AIAnalysisSection({ roiData }: AIAnalysisSectionProps) {
             <Brain className="h-6 w-6 text-blue-600" />
             <CardTitle>🤖 AI専門分析</CardTitle>
           </div>
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className={`${getConfidenceColor(analysis.confidenceLevel)} text-white`}
           >
             {getConfidenceText(analysis.confidenceLevel)} ({analysis.confidenceLevel}%)

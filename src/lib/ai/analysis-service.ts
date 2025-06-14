@@ -17,9 +17,18 @@ export interface AIAnalysisResult {
 
 export class AIAnalysisService {
   static async generateAnalysis(roiData: ROIData): Promise<AIAnalysisResult> {
+    const startTime = Date.now()
+    console.log('🤖 AI分析開始:', {
+      timestamp: new Date().toISOString(),
+      industry: roiData.industry,
+      roi: roiData.roi,
+      apiKeyConfigured: !!process.env.OPENAI_API_KEY
+    })
+
     try {
       const prompt = this.buildAnalysisPrompt(roiData)
 
+      console.log('📡 OpenAI API呼び出し開始...')
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
@@ -58,10 +67,34 @@ export class AIAnalysisService {
         throw new Error('AI分析の生成に失敗しました')
       }
 
+      const duration = Date.now() - startTime
+      console.log('✅ OpenAI API呼び出し成功:', {
+        duration: `${duration}ms`,
+        model: 'gpt-3.5-turbo',
+        responseLength: response.length,
+        timestamp: new Date().toISOString()
+      })
+
       return this.parseAIResponse(response)
     } catch (error) {
-      console.error('AI分析エラー:', error)
-      return this.getFallbackAnalysis(roiData)
+      const duration = Date.now() - startTime
+      console.error('❌ OpenAI API呼び出し失敗:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+        fallbackUsed: true
+      })
+
+      console.log('🛡️ フォールバック分析に切り替え...')
+      const fallbackResult = this.getFallbackAnalysis(roiData)
+
+      console.log('✅ フォールバック分析完了:', {
+        duration: `${Date.now() - startTime}ms`,
+        confidenceLevel: fallbackResult.confidenceLevel,
+        timestamp: new Date().toISOString()
+      })
+
+      return fallbackResult
     }
   }
 
