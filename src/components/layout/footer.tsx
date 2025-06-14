@@ -83,7 +83,7 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between space-y-2 md:flex-row md:space-y-0">
           <p className="text-sm text-muted-foreground">
-            © 2024 AI Sales ROI Calculator. All rights reserved.
+            © {currentYear} AI Sales ROI Calculator. All rights reserved.
           </p>
           <div className="flex space-x-4 text-sm text-muted-foreground">
             <Link href="/privacy" className="hover:text-foreground transition-colors">
