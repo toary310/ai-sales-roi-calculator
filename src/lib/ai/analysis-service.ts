@@ -34,7 +34,7 @@ export class AIAnalysisService {
         messages: [
           {
             role: "system",
-            content: `あなたは経験豊富なビジネスコンサルタント兼AI導入専門家です。
+            content: `あなたは数十年のビジネスコンサルタントの経験を持つ、超経験豊富なビジネスコンサルタント兼AI導入専門家です。
 
 以下の指針で分析してください：
 - 建設的で実用的な洞察を提供

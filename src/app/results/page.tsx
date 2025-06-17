@@ -282,7 +282,24 @@ export default function ResultsPage() {
       </div>
 
       {/* AI分析セクション */}
-      <AIAnalysisSection roiData={calculationResult} />
+      <AIAnalysisSection roiData={{
+        ...calculationResult,
+        industry: formData.industry,
+        companySize: formData.companySize,
+        aiToolType: formData.aiToolType,
+        initialCost: formData.initialCost,
+        monthlyCost: formData.monthlyCost,
+        implementationPeriod: formData.implementationPeriod,
+        annualNetProfit: calculationResult.totalSavings - calculationResult.aiCosts.annualCost,
+        currentMetrics: {
+          ...calculationResult.currentMetrics,
+          salesTeamSize: formData.salesTeamSize,
+          salesCost: formData.salesCost,
+          averageDealSize: formData.averageDealSize,
+          conversionRate: formData.conversionRate,
+          salesCycleLength: formData.salesCycleLength
+        }
+      }} />
 
       {/* アクションボタン - フッターとAI分析の間の中央配置 */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center my-8">
