@@ -401,7 +401,7 @@ export function ROICalculatorForm() {
                     />
                   </FormControl>
                   <FormDescription>
-                    現在の成約率からの改善ポイント
+                    現在の成約率からの改善率（%）
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

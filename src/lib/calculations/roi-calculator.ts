@@ -110,7 +110,8 @@ export class ROICalculator {
     const monthlySavings = monthlyBenefit - aiCosts.monthlyCost // AIコストを差し引く
 
     const totalSavings = monthlyBenefit * 12 // 年間総効果（AIコスト差し引き前）
-    const roi = this.calculateROI(totalSavings, aiCosts.totalCostYear1)
+    const annualNetSavings = monthlySavings * 12 // 年間純削減額（AIコスト差し引き後）
+    const roi = this.calculateROI(annualNetSavings + aiCosts.totalCostYear1, aiCosts.totalCostYear1)
     const paybackPeriod = this.calculatePaybackPeriod(aiCosts.totalCostYear1, monthlySavings)
 
     return {
@@ -160,7 +161,7 @@ export class ROICalculator {
 
     // 成約率向上による売上増加
     const currentConversionRate = this.formData.conversionRate || 0.1 // 計算用最小値0.1%
-    const improvedConversionRate = currentConversionRate + this.formData.conversionImprovement[0]
+    const improvedConversionRate = currentConversionRate * (1 + conversionImprovement)
     const conversionMultiplier = improvedConversionRate / currentConversionRate
 
     // 効率向上による処理能力増加
