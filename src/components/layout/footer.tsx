@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator"
-import { Calculator, Github, Mail, Twitter } from "lucide-react"
+import { Calculator, Github, Twitter } from "lucide-react"
 import Link from "next/link"
 
 export function Footer() {
@@ -8,7 +8,7 @@ export function Footer() {
   return (
     <footer className="border-t bg-background">
       <div className="container py-8 md:py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* ブランド情報 */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-2">
@@ -48,32 +48,27 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* 機能 */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold">機能</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="text-muted-foreground">ROI計算</li>
-              <li className="text-muted-foreground">効果分析</li>
-              <li className="text-muted-foreground">レポート出力</li>
-              <li className="text-muted-foreground">データ比較</li>
-            </ul>
-          </div>
-
           {/* お問い合わせ */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold">お問い合わせ</h3>
             <div className="flex space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="https://github.com/toary310"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                href="https://x.com/hachiska8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-foreground transition-colors">
-                <Mail className="h-5 w-5" />
-                <span className="sr-only">Email</span>
               </Link>
             </div>
           </div>
