@@ -27,6 +27,18 @@ import React from "react"
 export default function ResultsPage() {
   const { calculationResult, formData, clearResults } = useROIStore()
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false)
+  const [aiAnalysisKey, setAiAnalysisKey] = React.useState(0)
+
+  // ページ遷移時にAI分析をリセット
+  React.useEffect(() => {
+    // 新しい計算結果が来た時にAI分析をリセット
+    setAiAnalysisKey(prev => prev + 1)
+  }, [calculationResult])
+
+  // ページマウント時にもリセット（ブラウザバック等の対応）
+  React.useEffect(() => {
+    setAiAnalysisKey(Date.now())
+  }, [])
 
   const handleDownloadReport = async () => {
     if (!calculationResult) {
@@ -282,7 +294,9 @@ export default function ResultsPage() {
       </div>
 
       {/* AI分析セクション */}
-      <AIAnalysisSection roiData={{
+      <AIAnalysisSection
+        key={aiAnalysisKey}
+        roiData={{
         ...calculationResult,
         industry: formData.industry,
         companySize: formData.companySize,

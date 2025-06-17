@@ -10,8 +10,10 @@ import {
 
 import { BarChart3, Calculator, Info } from "lucide-react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Header() {
+  const pathname = usePathname()
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -63,12 +65,14 @@ export function Header() {
 
         {/* CTA ボタン */}
         <div className="flex items-center space-x-2">
-          <Button asChild className="hidden sm:inline-flex">
-            <Link href="/calculator">
-              <Calculator className="mr-2 h-4 w-4" />
-              計算開始
-            </Link>
-          </Button>
+          {pathname !== '/calculator' && (
+            <Button asChild className="hidden sm:inline-flex">
+              <Link href="/calculator">
+                <Calculator className="mr-2 h-4 w-4" />
+                計算開始
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>
