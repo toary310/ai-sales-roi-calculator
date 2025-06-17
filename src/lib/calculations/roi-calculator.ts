@@ -1,4 +1,4 @@
-import { ROIFormData, ROICalculationResult, MonthlyProjection, IndustryBenchmark, CompanySizeMultiplier } from '@/types/roi'
+import { CompanySizeMultiplier, IndustryBenchmark, MonthlyProjection, ROICalculationResult, ROIFormData } from '@/types/roi'
 
 // 業界別ベンチマークデータ
 const INDUSTRY_BENCHMARKS: Record<string, IndustryBenchmark> = {
@@ -103,10 +103,13 @@ export class ROICalculator {
     const projectedMetrics = this.calculateProjectedMetrics(currentMetrics)
     const aiCosts = this.calculateAICosts()
     const monthlyProjection = this.calculateMonthlyProjection(currentMetrics, projectedMetrics, aiCosts)
-    
-    const monthlySavings = projectedMetrics.monthlySales - currentMetrics.monthlySales + 
-                         (currentMetrics.monthlyCost - projectedMetrics.monthlyCost)
-    const totalSavings = monthlySavings * 12
+
+    // 月間削減額の計算（AIコストを差し引いた実質的な削減額）
+    const monthlyBenefit = projectedMetrics.monthlySales - currentMetrics.monthlySales +
+                          (currentMetrics.monthlyCost - projectedMetrics.monthlyCost)
+    const monthlySavings = monthlyBenefit - aiCosts.monthlyCost // AIコストを差し引く
+
+    const totalSavings = monthlyBenefit * 12 // 年間総効果（AIコスト差し引き前）
     const roi = this.calculateROI(totalSavings, aiCosts.totalCostYear1)
     const paybackPeriod = this.calculatePaybackPeriod(aiCosts.totalCostYear1, monthlySavings)
 
@@ -134,8 +137,12 @@ export class ROICalculator {
 
   // 現在の営業指標を計算
   private calculateCurrentMetrics() {
-    const dealsPerMonth = this.formData.monthlySales / this.formData.averageDealSize
-    const salesPerPerson = this.formData.monthlySales / this.formData.salesTeamSize
+    // ゼロ除算を防ぐためのチェック（計算用の最小値設定）
+    const averageDealSize = this.formData.averageDealSize || 1 // 計算用最小値
+    const salesTeamSize = this.formData.salesTeamSize || 1 // 最小値1人
+
+    const dealsPerMonth = this.formData.monthlySales / averageDealSize
+    const salesPerPerson = this.formData.monthlySales / salesTeamSize
 
     return {
       monthlySales: this.formData.monthlySales,
@@ -152,8 +159,9 @@ export class ROICalculator {
     const timeReduction = this.formData.timeReduction[0] / 100
 
     // 成約率向上による売上増加
-    const improvedConversionRate = this.formData.conversionRate + this.formData.conversionImprovement[0]
-    const conversionMultiplier = improvedConversionRate / this.formData.conversionRate
+    const currentConversionRate = this.formData.conversionRate || 0.1 // 計算用最小値0.1%
+    const improvedConversionRate = currentConversionRate + this.formData.conversionImprovement[0]
+    const conversionMultiplier = improvedConversionRate / currentConversionRate
 
     // 効率向上による処理能力増加
     const efficiencyMultiplier = 1 + efficiencyGain
@@ -197,13 +205,27 @@ export class ROICalculator {
   // 投資回収期間を計算（ヶ月）
   private calculatePaybackPeriod(totalCost: number, monthlySavings: number): number {
     if (monthlySavings <= 0) return 999 // 回収不可能
-    return Math.ceil(totalCost / monthlySavings)
+    if (totalCost <= 0) return 0 // コストがない場合は即座に回収
+
+    const paybackMonths = Math.ceil(totalCost / monthlySavings)
+
+    // 異常に長い期間の場合は999に制限
+    if (paybackMonths > 999) return 999
+
+    return paybackMonths
   }
 
   // 売上増加率を計算
   private calculateRevenueIncrease(): number {
     const currentSales = this.formData.monthlySales
     const projectedMetrics = this.calculateProjectedMetrics(this.calculateCurrentMetrics())
+
+    // 現在の売上が0の場合は、新規売上創出として扱う
+    if (currentSales === 0) {
+      // 予測売上がある場合は、それを売上創出効果として表現
+      return projectedMetrics.monthlySales > 0 ? 100 : 0 // 100%は新規売上創出を意味
+    }
+
     return Math.round(((projectedMetrics.monthlySales - currentSales) / currentSales) * 100)
   }
 
@@ -216,8 +238,8 @@ export class ROICalculator {
 
   // 月別推移を計算
   private calculateMonthlyProjection(
-    currentMetrics: any, 
-    projectedMetrics: any, 
+    currentMetrics: any,
+    projectedMetrics: any,
     aiCosts: any
   ): MonthlyProjection[] {
     const monthlyData: MonthlyProjection[] = []
@@ -225,21 +247,21 @@ export class ROICalculator {
 
     for (let month = 1; month <= 12; month++) {
       // 導入期間中は段階的に効果が現れる
-      const effectivenessFactor = month <= implementationPeriod 
-        ? month / implementationPeriod 
+      const effectivenessFactor = month <= implementationPeriod
+        ? month / implementationPeriod
         : 1
 
-      const sales = currentMetrics.monthlySales + 
+      const sales = currentMetrics.monthlySales +
         (projectedMetrics.monthlySales - currentMetrics.monthlySales) * effectivenessFactor
 
-      const costs = currentMetrics.monthlyCost - 
+      const costs = currentMetrics.monthlyCost -
         (currentMetrics.monthlyCost - projectedMetrics.monthlyCost) * effectivenessFactor
 
-      const netBenefit = (sales - currentMetrics.monthlySales) + 
+      const netBenefit = (sales - currentMetrics.monthlySales) +
         (currentMetrics.monthlyCost - costs) - aiCosts.monthlyCost
 
       const cumulativeSavings = monthlyData.reduce((sum, data) => sum + data.netBenefit, 0) + netBenefit
-      const cumulativeROI = aiCosts.totalCostYear1 > 0 
+      const cumulativeROI = aiCosts.totalCostYear1 > 0
         ? Math.round(((cumulativeSavings - aiCosts.initialCost) / aiCosts.totalCostYear1) * 100)
         : 0
 

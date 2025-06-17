@@ -45,19 +45,19 @@ export function RevenueForecastChart({
           <p className="font-semibold text-gray-900">{label}</p>
           <div className="space-y-1 mt-2">
             <p className="text-gray-600">
-              <span className="font-medium">現在の売上:</span> {data.currentSales}万円
+              <span className="font-medium">現在の売上:</span> {data.currentSales.toLocaleString()}万円
             </p>
             <p className="text-blue-600">
-              <span className="font-medium">予測売上:</span> {data.projectedSales}万円
+              <span className="font-medium">予測売上:</span> {data.projectedSales.toLocaleString()}万円
             </p>
             <p className="text-green-600">
-              <span className="font-medium">売上改善:</span> +{data.improvement}万円
+              <span className="font-medium">売上改善:</span> +{data.improvement.toLocaleString()}万円
             </p>
             <p className="text-orange-600">
-              <span className="font-medium">営業コスト:</span> {data.costs}万円
+              <span className="font-medium">営業コスト:</span> {data.costs.toLocaleString()}万円
             </p>
             <p className="text-red-600">
-              <span className="font-medium">AIコスト:</span> {data.aiCosts}万円
+              <span className="font-medium">AIコスト:</span> {data.aiCosts.toLocaleString()}万円
             </p>
           </div>
         </div>
@@ -125,25 +125,38 @@ export function RevenueForecastChart({
             <div className="text-center">
               <p className="text-xs text-muted-foreground">平均売上改善</p>
               <p className="text-lg font-semibold text-green-600">
-                +{Math.round(chartData.reduce((sum, item) => sum + item.improvement, 0) / chartData.length)}万円
+                +{Math.round(chartData.reduce((sum, item) => sum + item.improvement, 0) / chartData.length).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">最大売上</p>
               <p className="text-lg font-semibold text-blue-600">
-                {Math.max(...chartData.map(item => item.projectedSales))}万円
+                {Math.max(...chartData.map(item => item.projectedSales)).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">年間改善額</p>
               <p className="text-lg font-semibold text-green-600">
-                +{Math.round(chartData.reduce((sum, item) => sum + item.improvement, 0))}万円
+                +{Math.round(chartData.reduce((sum, item) => sum + item.improvement, 0)).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">改善率</p>
               <p className="text-lg font-semibold text-purple-600">
-                {Math.round((chartData[chartData.length - 1].projectedSales / chartData[0].currentSales - 1) * 100)}%
+                {(() => {
+                  const currentSales = chartData[0]?.currentSales || 0
+                  const projectedSales = chartData[chartData.length - 1]?.projectedSales || 0
+
+                  if (currentSales === 0) {
+                    if (projectedSales > 0) {
+                      return "新規売上創出"
+                    }
+                    return "0"
+                  }
+
+                  const improvementRate = Math.round((projectedSales / currentSales - 1) * 100)
+                  return `${improvementRate >= 0 ? '+' : ''}${improvementRate}%`
+                })()}
               </p>
             </div>
           </div>

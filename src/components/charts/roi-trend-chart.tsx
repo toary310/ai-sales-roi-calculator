@@ -44,10 +44,10 @@ export function ROITrendChart({
               <span className="font-medium">累積ROI:</span> {data.roi}%
             </p>
             <p className="text-green-600">
-              <span className="font-medium">累積削減額:</span> {data.savings}万円
+              <span className="font-medium">累積削減額:</span> {data.savings.toLocaleString()}万円
             </p>
             <p className="text-purple-600">
-              <span className="font-medium">月間純利益:</span> {data.netBenefit}万円
+              <span className="font-medium">月間純利益:</span> {data.netBenefit.toLocaleString()}万円
             </p>
           </div>
         </div>

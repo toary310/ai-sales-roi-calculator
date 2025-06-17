@@ -44,19 +44,19 @@ export function CostAnalysisChart({
           <p className="font-semibold text-gray-900">{label}</p>
           <div className="space-y-1 mt-2">
             <p className="text-red-600">
-              <span className="font-medium">AIコスト:</span> {data.aiCosts}万円/月
+              <span className="font-medium">AIコスト:</span> {data.aiCosts.toLocaleString()}万円/月
             </p>
             <p className="text-blue-600">
-              <span className="font-medium">運営コスト:</span> {data.operationalCosts}万円/月
+              <span className="font-medium">運営コスト:</span> {data.operationalCosts.toLocaleString()}万円/月
             </p>
             <p className="text-orange-600">
-              <span className="font-medium">累積AIコスト:</span> {data.cumulativeAICosts}万円
+              <span className="font-medium">累積AIコスト:</span> {data.cumulativeAICosts.toLocaleString()}万円
             </p>
             <p className="text-green-600">
-              <span className="font-medium">累積削減額:</span> {data.cumulativeSavings}万円
+              <span className="font-medium">累積削減額:</span> {data.cumulativeSavings.toLocaleString()}万円
             </p>
             <p className={`font-semibold ${data.netBenefit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              <span className="font-medium">純利益:</span> {data.netBenefit >= 0 ? '+' : ''}{data.netBenefit}万円
+              <span className="font-medium">純利益:</span> {data.netBenefit >= 0 ? '+' : ''}{data.netBenefit.toLocaleString()}万円
             </p>
             {data.breakEven && (
               <p className="text-purple-600 font-semibold">
@@ -159,13 +159,13 @@ export function CostAnalysisChart({
             <div className="text-center">
               <p className="text-xs text-muted-foreground">年間AIコスト</p>
               <p className="text-lg font-semibold text-red-600">
-                {chartData[0]?.aiCosts * 12}万円
+                {(chartData[0]?.aiCosts * 12 || 0).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-muted-foreground">年間削減額</p>
               <p className="text-lg font-semibold text-green-600">
-                {chartData[chartData.length - 1]?.cumulativeSavings}万円
+                {(chartData[chartData.length - 1]?.cumulativeSavings || 0).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
@@ -174,7 +174,7 @@ export function CostAnalysisChart({
                 chartData[chartData.length - 1]?.netBenefit >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
                 {chartData[chartData.length - 1]?.netBenefit >= 0 ? '+' : ''}
-                {chartData.reduce((sum, item) => sum + item.netBenefit, 0)}万円
+                {chartData.reduce((sum, item) => sum + item.netBenefit, 0).toLocaleString()}万円
               </p>
             </div>
           </div>

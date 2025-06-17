@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useROIStore } from "@/lib/store/roi-store"
+import { formatPaybackPeriod } from "@/lib/utils/format-period"
 import {
     AlertCircle,
     ArrowUp,
@@ -121,7 +122,7 @@ export default function ResultsPage() {
           <CardHeader>
             <CardTitle className="flex items-center justify-center gap-2 text-2xl">
               <TrendingUp className="h-6 w-6 text-blue-600" />
-              {calculationResult.paybackPeriod}ヶ月
+              {formatPaybackPeriod(calculationResult.paybackPeriod)}
             </CardTitle>
             <CardDescription>投資回収期間</CardDescription>
           </CardHeader>
@@ -222,6 +223,10 @@ export default function ResultsPage() {
                   <span>¥{formData.salesCost.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-muted-foreground">平均取引額:</span>
+                  <span>¥{formData.averageDealSize.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-muted-foreground">AI初期費用:</span>
                   <span>¥{formData.initialCost.toLocaleString()}</span>
                 </div>
@@ -253,7 +258,7 @@ export default function ResultsPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">投資回収期間:</span>
-                  <span className="font-bold text-blue-600">{calculationResult.paybackPeriod}ヶ月</span>
+                  <span className="font-bold text-blue-600">{formatPaybackPeriod(calculationResult.paybackPeriod)}</span>
                 </div>
               </div>
             </div>

@@ -1,16 +1,17 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatPaybackPeriod } from "@/lib/utils/format-period"
 import { ROICalculationResult } from "@/types/roi"
 import { Target } from "lucide-react"
 import {
-  Cell,
-  Pie,
-  PieChart,
-  RadialBar,
-  RadialBarChart,
-  ResponsiveContainer,
-  Tooltip
+    Cell,
+    Pie,
+    PieChart,
+    RadialBar,
+    RadialBarChart,
+    ResponsiveContainer,
+    Tooltip
 } from "recharts"
 
 interface ImpactComparisonChartProps {
@@ -185,7 +186,7 @@ export function ImpactComparisonChart({
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">{item.name}</span>
                     <span className="text-sm font-semibold">
-                      ¥{(item.value / 10000).toFixed(0)}万円
+                      ¥{Math.round(item.value / 10000).toLocaleString()}万円
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -202,10 +203,10 @@ export function ImpactComparisonChart({
             </div>
             <div className="text-center pt-2 border-t">
               <p className="text-sm font-medium">
-                純利益: ¥{Math.round((calculationResult.totalSavings - calculationResult.aiCosts.annualCost) / 10000)}万円
+                純利益: ¥{Math.round((calculationResult.totalSavings - calculationResult.aiCosts.annualCost) / 10000).toLocaleString()}万円
               </p>
               <p className="text-xs text-muted-foreground">
-                投資回収期間: {calculationResult.paybackPeriod}ヶ月
+                投資回収期間: {formatPaybackPeriod(calculationResult.paybackPeriod)}
               </p>
             </div>
           </div>
@@ -234,7 +235,7 @@ export function ImpactComparisonChart({
             </div>
             <div>
               <p className="text-2xl font-bold text-purple-600">
-                {calculationResult.paybackPeriod}ヶ月
+                {formatPaybackPeriod(calculationResult.paybackPeriod)}
               </p>
               <p className="text-xs text-muted-foreground">投資回収期間</p>
             </div>
