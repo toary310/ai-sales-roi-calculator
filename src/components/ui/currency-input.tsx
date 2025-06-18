@@ -12,26 +12,21 @@ export interface CurrencyInputProps
 
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ className, value = 0, onChange, ...props }, ref) => {
-    const [displayValue, setDisplayValue] = React.useState<string>('')
+    // 数値をカンマ区切り文字列に変換
+    const formatNumber = (num: number): string => {
+      if (num === 0) return ''
+      return num.toLocaleString()
+    }
 
-    // 初期値設定
-    React.useEffect(() => {
-      if (value === 0) {
-        setDisplayValue('')
-      } else {
-        setDisplayValue(value.toString())
-      }
-    }, [value])
+    // 文字列から数値を抽出
+    const parseNumber = (str: string): number => {
+      const cleaned = str.replace(/[^\d]/g, '')
+      return cleaned === '' ? 0 : parseInt(cleaned, 10)
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value
-
-      // 数値のみ許可
-      const cleanValue = inputValue.replace(/[^\d]/g, '')
-
-      setDisplayValue(cleanValue)
-
-      const numericValue = cleanValue === '' ? 0 : parseInt(cleanValue, 10)
+      const numericValue = parseNumber(inputValue)
       onChange?.(numericValue)
     }
 
@@ -41,7 +36,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
           type="text"
           className={cn("no-spinner pr-8", className)}
           ref={ref}
-          value={displayValue}
+          value={formatNumber(value)}
           onChange={handleChange}
           placeholder="0"
           {...props}

@@ -1,99 +1,244 @@
 import { AIAnalysisResult } from '@/lib/ai/analysis-service'
-import { ROIData } from '@/types'
+import { ROICalculationResult } from '@/types/roi'
+
+// jsPDF の型定義拡張
+declare module 'jspdf' {
+  interface jsPDF {
+    // 基本的なjsPDFの型定義は既存のものを使用
+  }
+}
 
 export class PDFReportGenerator {
   static async generateReport(
-    roiData: ROIData,
+    calculationResult: ROICalculationResult,
     aiAnalysis?: AIAnalysisResult
   ): Promise<void> {
     try {
-      // 日本語対応のため、CSVレポートとして生成
-      const csvContent = this.generateCSVReport(roiData, aiAnalysis)
-      this.downloadCSV(csvContent, 'AI営業ROI分析レポート')
+      // 動的インポートでjsPDFを読み込み
+      const { default: jsPDF } = await import('jspdf')
+
+      // PDFドキュメント作成
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      // PDFコンテンツ生成
+      await this.generatePDFContentWithTables(doc, calculationResult, aiAnalysis)
+
+      // PDFをダウンロード
+      const filename = `AI_Sales_ROI_Report_${new Date().toISOString().split('T')[0]}.pdf`
+      doc.save(filename)
     } catch (error) {
-      console.error('レポート生成エラー:', error)
-      throw new Error('レポートの生成に失敗しました')
+      console.error('PDFレポート生成エラー:', error)
+      throw new Error('PDFレポートの生成に失敗しました')
     }
   }
 
-  private static generateCSVReport(roiData: ROIData, aiAnalysis?: AIAnalysisResult): string {
-    const lines: string[] = []
+  private static async generatePDFContentWithTables(
+    doc: any,
+    calculationResult: ROICalculationResult,
+    aiAnalysis?: AIAnalysisResult
+  ): Promise<void> {
+    const pageWidth = 210
+    const margin = 20
+    let yPosition = 20
 
-    // BOM付きUTF-8でCSVを生成（Excelで正しく表示されるため）
-    lines.push('\uFEFF') // BOM
+    // ヘッダー（英語で作成）
+    doc.setFontSize(20)
+    doc.text('AI Sales ROI Analysis Report', pageWidth / 2, yPosition, { align: 'center' })
+    yPosition += 15
 
-    // ヘッダー
-    lines.push('AI営業ROI分析レポート')
-    lines.push(`生成日時,${new Date().toLocaleString('ja-JP')}`)
-    lines.push('')
+    doc.setFontSize(10)
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-US')}`, pageWidth / 2, yPosition, { align: 'center' })
+    yPosition += 20
 
-    // 企業情報
-    lines.push('企業情報')
-    lines.push(`業界,${roiData.industry || '不明'}`)
-    lines.push(`企業規模,${roiData.companySize || '不明'}`)
-    lines.push(`営業チーム規模,${roiData.currentMetrics?.salesTeamSize || 0}名`)
-    lines.push('')
+    // ROI概要セクション
+    yPosition = this.addSection(doc, 'ROI Summary', yPosition)
 
-    // 現在の営業データ
-    lines.push('現在の営業データ')
-    lines.push(`月間売上,${(roiData.currentMetrics?.monthlySales || 0).toLocaleString()}円`)
-    lines.push(`月間営業コスト,${(roiData.currentMetrics?.salesCost || 0).toLocaleString()}円`)
-    lines.push(`平均取引額,${(roiData.currentMetrics?.averageDealSize || 0).toLocaleString()}円`)
-    lines.push(`成約率,${roiData.currentMetrics?.conversionRate || 0}%`)
-    lines.push(`営業サイクル,${roiData.currentMetrics?.salesCycleLength || 0}日`)
-    lines.push('')
+    const roiData = [
+      ['ROI (%)', `${calculationResult.roi}%`],
+      ['Payback Period (months)', `${calculationResult.paybackPeriod}`],
+      ['Annual Total Savings (JPY)', `¥${calculationResult.totalSavings.toLocaleString()}`],
+      ['Monthly Net Savings (JPY)', `¥${Math.round(calculationResult.monthlySavings).toLocaleString()}`],
+      ['Efficiency Improvement (%)', `${Math.round(calculationResult.efficiencyGain)}%`],
+      ['Revenue Increase (%)', `${calculationResult.revenueIncrease}%`]
+    ]
 
-    // AI導入計画
-    lines.push('AI導入計画')
-    lines.push(`AIツールタイプ,${roiData.aiToolType || '不明'}`)
-    lines.push(`初期費用,${(roiData.aiCosts?.initialCost || 0).toLocaleString()}円`)
-    lines.push(`月額費用,${(roiData.aiCosts?.monthlyCost || 0).toLocaleString()}円`)
-    lines.push(`導入期間,${roiData.calculationParams?.implementationPeriod || 0}ヶ月`)
-    lines.push('')
+    yPosition = this.addTableData(doc, roiData, yPosition, margin)
 
-    // ROI計算結果
-    lines.push('ROI計算結果')
-    lines.push(`投資収益率(ROI),${roiData.roi || 0}%`)
-    lines.push(`投資回収期間,${roiData.paybackPeriod || 0}ヶ月`)
-    lines.push(`年間純利益,${(roiData.annualNetProfit || 0).toLocaleString()}円`)
-    lines.push('')
+    // 現在の営業データセクション
+    yPosition = this.addSection(doc, 'Current Sales Data', yPosition + 10)
 
-    // AI分析結果
+    const currentData = [
+      ['Monthly Sales (JPY)', `¥${calculationResult.currentMetrics.monthlySales.toLocaleString()}`],
+      ['Monthly Sales Cost (JPY)', `¥${calculationResult.currentMetrics.monthlyCost.toLocaleString()}`],
+      ['Deals per Month', `${Math.round(calculationResult.currentMetrics.dealsPerMonth)}`],
+      ['Sales per Person (JPY)', `¥${Math.round(calculationResult.currentMetrics.salesPerPerson).toLocaleString()}`]
+    ]
+
+    yPosition = this.addTableData(doc, currentData, yPosition, margin)
+
+    // AI導入計画セクション
+    yPosition = this.addSection(doc, 'AI Implementation Plan', yPosition + 10)
+
+    const aiPlanData = [
+      ['Initial Cost (JPY)', `¥${calculationResult.aiCosts.initialCost.toLocaleString()}`],
+      ['Monthly Cost (JPY)', `¥${calculationResult.aiCosts.monthlyCost.toLocaleString()}`],
+      ['Annual Cost (JPY)', `¥${calculationResult.aiCosts.annualCost.toLocaleString()}`],
+      ['Implementation Period (months)', `${calculationResult.calculationParams.implementationPeriod}`],
+      ['Efficiency Improvement (%)', `${calculationResult.calculationParams.efficiencyImprovement}%`],
+      ['Conversion Improvement (%)', `${calculationResult.calculationParams.conversionImprovement}%`],
+      ['Time Reduction (%)', `${calculationResult.calculationParams.timeReduction}%`]
+    ]
+
+    yPosition = this.addTableData(doc, aiPlanData, yPosition, margin)
+
+    // 新しいページが必要かチェック
+    if (yPosition > 220) {
+      doc.addPage()
+      yPosition = 20
+    }
+
+    // 月別推移セクション（最初の6ヶ月）
+    if (calculationResult.monthlyProjection && calculationResult.monthlyProjection.length > 0) {
+      yPosition = this.addSection(doc, 'Monthly Projection (First 6 Months)', yPosition + 10)
+
+      const monthlyData = calculationResult.monthlyProjection.slice(0, 6).map(month => [
+        `Month ${month.month}`,
+        `¥${month.sales.toLocaleString()}`,
+        `¥${month.costs.toLocaleString()}`,
+        `${month.cumulativeROI}%`
+      ])
+
+      // ヘッダー行
+      doc.setFontSize(9)
+      doc.setFont(undefined, 'bold')
+      doc.text('Month', margin, yPosition)
+      doc.text('Sales (JPY)', margin + 40, yPosition)
+      doc.text('Costs (JPY)', margin + 80, yPosition)
+      doc.text('Cumulative ROI (%)', margin + 120, yPosition)
+      yPosition += 8
+
+      // データ行
+      doc.setFont(undefined, 'normal')
+      monthlyData.forEach(([month, sales, costs, roi]) => {
+        doc.text(month, margin, yPosition)
+        doc.text(sales, margin + 40, yPosition)
+        doc.text(costs, margin + 80, yPosition)
+        doc.text(roi, margin + 120, yPosition)
+        yPosition += 6
+      })
+
+      yPosition += 10
+    }
+
+    // AI分析結果（英語での要約表示）
     if (aiAnalysis) {
-      lines.push('AI専門分析')
-      lines.push(`リスク分析,"${aiAnalysis.riskAnalysis}"`)
-      lines.push(`業界比較,"${aiAnalysis.industryComparison}"`)
-      lines.push(`市場トレンド,"${aiAnalysis.marketTrends}"`)
-      lines.push(`分析信頼度,${aiAnalysis.confidenceLevel}%`)
-      lines.push('')
+      if (yPosition > 200) {
+        doc.addPage()
+        yPosition = 20
+      }
 
-      lines.push('推奨事項')
-      aiAnalysis.recommendations.forEach((rec, index) => {
-        lines.push(`推奨事項${index + 1},"${rec}"`)
-      })
-      lines.push('')
+      yPosition = this.addSection(doc, 'AI Analysis Summary', yPosition + 10)
 
-      lines.push('重要な洞察')
-      aiAnalysis.keyInsights.forEach((insight, index) => {
-        lines.push(`洞察${index + 1},"${insight}"`)
-      })
+      // 基本的な分析情報のみ表示（文字化けリスクを最小化）
+      const basicAnalysisData = [
+        ['Analysis Confidence Level', `${aiAnalysis.confidenceLevel}%`],
+        ['Risk Assessment', 'Detailed analysis available in web interface'],
+        ['Industry Comparison', 'Comparative analysis available in web interface'],
+        ['Market Trends', 'Trend analysis available in web interface']
+      ]
+
+      yPosition = this.addTableData(doc, basicAnalysisData, yPosition, margin)
+
+      // 推奨事項の数のみ表示
+      if (aiAnalysis.recommendations && aiAnalysis.recommendations.length > 0) {
+        yPosition = this.addSection(doc, 'AI Recommendations', yPosition + 10)
+
+        doc.setFontSize(10)
+        doc.text(`Total Recommendations: ${aiAnalysis.recommendations.length}`, margin, yPosition)
+        yPosition += 8
+        doc.text('Detailed recommendations available in web interface', margin, yPosition)
+        yPosition += 8
+      }
+
+      // 重要な洞察の数のみ表示
+      if (aiAnalysis.keyInsights && aiAnalysis.keyInsights.length > 0) {
+        yPosition = this.addSection(doc, 'Key Insights', yPosition + 10)
+
+        doc.setFontSize(10)
+        doc.text(`Total Key Insights: ${aiAnalysis.keyInsights.length}`, margin, yPosition)
+        yPosition += 8
+        doc.text('Detailed insights available in web interface', margin, yPosition)
+        yPosition += 8
+      }
+
+      // 注記
+      yPosition += 10
+      doc.setFontSize(9)
+      doc.setFont(undefined, 'italic')
+      doc.text('Note: Complete AI analysis with detailed text is available', margin, yPosition)
+      yPosition += 6
+      doc.text('in the web interface to ensure proper character encoding.', margin, yPosition)
+      doc.setFont(undefined, 'normal')
     }
 
-    return lines.join('\n')
+    // フッター
+    const pageCount = doc.internal.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
+      doc.setFontSize(8)
+      doc.text(`Page ${i} / ${pageCount}`, pageWidth - margin, 290, { align: 'right' })
+      doc.text('AI Sales ROI Calculator', margin, 290)
+    }
   }
 
-  private static downloadCSV(content: string, filename: string): void {
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
+  private static truncateText(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength - 3) + '...'
+  }
 
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob)
-      link.setAttribute('href', url)
-      link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`)
-      link.style.visibility = 'hidden'
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+  private static sanitizeText(text: string, maxLength: number): string {
+    // 日本語文字を除去し、英語・数字・基本記号のみを残す
+    const sanitized = text
+      .replace(/[^\x00-\x7F]/g, '') // 非ASCII文字を除去
+      .replace(/\s+/g, ' ') // 複数の空白を1つに
+      .trim()
+
+    // 空になった場合は代替テキスト
+    if (!sanitized) {
+      return 'Analysis data contains non-ASCII characters'
     }
+
+    return this.truncateText(sanitized, maxLength)
+  }
+
+  private static addSection(doc: any, title: string, yPosition: number): number {
+    doc.setFontSize(14)
+    doc.setFont(undefined, 'bold')
+    doc.text(title, 20, yPosition)
+    doc.setFont(undefined, 'normal')
+
+    // セクション下線
+    doc.setLineWidth(0.5)
+    doc.line(20, yPosition + 2, 190, yPosition + 2)
+
+    return yPosition + 12
+  }
+
+  private static addTableData(doc: any, data: string[][], yPosition: number, margin: number): number {
+    doc.setFontSize(10)
+
+    data.forEach(([label, value]) => {
+      doc.setFont(undefined, 'bold')
+      doc.text(`${label}:`, margin, yPosition)
+      doc.setFont(undefined, 'normal')
+      doc.text(value, margin + 80, yPosition)
+      yPosition += 7
+    })
+
+    return yPosition
   }
 }

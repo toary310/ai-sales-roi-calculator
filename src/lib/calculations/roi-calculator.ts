@@ -154,7 +154,9 @@ export class ROICalculator {
 
     const totalSavings = monthlyBenefit * 12 // 年間総効果（AIコスト差し引き前）
     const annualNetSavings = monthlySavings * 12 // 年間純削減額（AIコスト差し引き後）
-    const roi = this.calculateROI(totalSavings, aiCosts.totalCostYear1) // 修正: 総効果を使用
+
+    // 🔧 修正: ROI計算は純削減額を使用（より現実的）
+    const roi = this.calculateROI(annualNetSavings, aiCosts.totalCostYear1)
     const paybackPeriod = this.calculatePaybackPeriod(aiCosts.totalCostYear1, monthlySavings)
 
     return {
@@ -215,6 +217,7 @@ export class ROICalculator {
       industryConversionRate * 0.3 // 業界平均の30%を最小値とする
     )
 
+    // 🔧 修正: 改善効果の適用方法を現実的に調整
     // 成約率向上による売上増加（業界ベンチマーク考慮）
     const maxReasonableConversionRate = industryConversionRate * 1.5 // 業界平均の150%を上限
     const improvedConversionRate = Math.min(
@@ -223,15 +226,22 @@ export class ROICalculator {
     )
     const conversionMultiplier = improvedConversionRate / currentConversionRate
 
-    // 効率向上による処理能力増加
-    const efficiencyMultiplier = 1 + efficiencyGain
+    // 効率向上は処理能力増加ではなく、より控えめに適用
+    const efficiencyMultiplier = 1 + (efficiencyGain * 0.5) // 50%の効果に調整（より保守的）
 
-    const projectedMonthlySales = currentMetrics.monthlySales * conversionMultiplier * efficiencyMultiplier
-    const projectedDealsPerMonth = currentMetrics.dealsPerMonth * conversionMultiplier * efficiencyMultiplier
+    // 🔧 修正: 改善効果の重複を避け、より保守的な計算
+    // 成約率改善と効率改善の複合効果を制限
+    const combinedMultiplier = Math.min(
+      conversionMultiplier * efficiencyMultiplier,
+      1.3 // 最大30%の売上増加に制限（保守的）
+    )
+
+    const projectedMonthlySales = currentMetrics.monthlySales * combinedMultiplier
+    const projectedDealsPerMonth = currentMetrics.dealsPerMonth * combinedMultiplier
 
     // コスト削減（時間削減による人件費削減）
-    // 業界・会社規模に応じた人件費比率を動的計算
-    const laborCostRatio = this.calculateLaborCostRatio()
+    // 業界・会社規模に応じた人件費比率を動的計算（保守的に調整）
+    const laborCostRatio = this.calculateLaborCostRatio() * 0.7 // 70%に調整（保守的）
     const costReductionFromTimeReduction = currentMetrics.monthlyCost * timeReduction * laborCostRatio
     const projectedMonthlyCost = currentMetrics.monthlyCost - costReductionFromTimeReduction
 
@@ -261,7 +271,13 @@ export class ROICalculator {
   // ROIを計算
   private calculateROI(totalBenefit: number, totalCost: number): number {
     if (totalCost === 0) return 0
-    return Math.round(((totalBenefit - totalCost) / totalCost) * 100)
+
+    const rawROI = ((totalBenefit - totalCost) / totalCost) * 100
+
+    // 🔧 保守的なROI上限を設定（300%を上限とする）
+    const cappedROI = Math.min(rawROI, 300)
+
+    return Math.round(cappedROI)
   }
 
   // 投資回収期間を計算（ヶ月）
@@ -368,10 +384,10 @@ export class ROICalculator {
     const implementationPeriod = this.formData.implementationPeriod
 
     for (let month = 1; month <= 12; month++) {
-      // 導入期間中は段階的に効果が現れる
+      // 導入期間中は段階的に効果が現れる（現実的な成長曲線）
       const effectivenessFactor = month <= implementationPeriod
-        ? month / implementationPeriod
-        : 1
+        ? Math.min((month / implementationPeriod) * 0.5, 0.5) // 導入期間中は最大50%
+        : Math.min(0.5 + ((month - implementationPeriod) / (12 - implementationPeriod)) * 0.5, 1.0) // 段階的に100%へ
 
       const sales = currentMetrics.monthlySales +
         (projectedMetrics.monthlySales - currentMetrics.monthlySales) * effectivenessFactor
@@ -386,10 +402,10 @@ export class ROICalculator {
       const cumulativeSavings = monthlyData.reduce((sum, data) => sum + data.netBenefit, 0) + netBenefit
       const cumulativeGrossBenefit = monthlyData.reduce((sum, data) => sum + data.grossBenefit, 0) + grossBenefit
 
-      // 月別ROI: 累積投資額に対する累積効果
+      // 月別ROI: 正しいROI計算式 = (利益 - 投資額) / 投資額 * 100
       const cumulativeInvestment = aiCosts.initialCost + (aiCosts.monthlyCost * month)
       const cumulativeROI = cumulativeInvestment > 0
-        ? Math.round(((cumulativeGrossBenefit - cumulativeInvestment) / cumulativeInvestment) * 100)
+        ? Math.round(((cumulativeSavings - cumulativeInvestment) / cumulativeInvestment) * 100)
         : 0
 
       monthlyData.push({

@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { CurrencyInput } from "@/components/ui/currency-input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -57,20 +56,21 @@ export function ROICalculatorForm() {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    mode: "onChange", // リアルタイムバリデーション
     defaultValues: {
-      salesTeamSize: 5,
-      monthlySales: 3000000,      // 300万円（現実的な中小企業レベル）
-      salesCost: 900000,          // 30%（業界標準的な営業コスト比率）
-      averageDealSize: 600000,    // 60万円（B2B平均的な取引額）
-      conversionRate: 15,         // 15%（現実的な成約率）
+      salesTeamSize: 6,
+      monthlySales: 3500000,      // 350万円（現実的な中小企業レベル）
+      salesCost: 1050000,         // 30%（業界標準的な営業コスト比率）
+      averageDealSize: 580000,    // 58万円（B2B平均的な取引額）
+      conversionRate: 16,         // 16%（現実的な成約率）
       salesCycleLength: 45,       // 45日（B2B標準的な営業サイクル）
       aiToolType: "",
-      initialCost: 300000,        // 30万円（現実的な初期費用）
-      monthlyCost: 30000,         // 3万円（現実的な月額費用）
+      initialCost: 450000,        // 45万円（初期費用を増やして-1%ROI開始を実現）
+      monthlyCost: 42000,         // 4.2万円（月額費用）
       implementationPeriod: 3,
-      efficiencyImprovement: [25], // 25%（現実的な効率改善）
-      conversionImprovement: [10], // 10%（現実的な成約率改善）
-      timeReduction: [20],        // 20%（現実的な時間削減）
+      efficiencyImprovement: [8],  // 8%（より保守的な効率改善）
+      conversionImprovement: [2],  // 2%（より保守的な成約率改善）
+      timeReduction: [10],         // 10%（より保守的な時間削減）
       industry: "",
       companySize: "",
       hasExistingCrm: false,
@@ -147,9 +147,12 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月間売上（円）</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
+                      <Input
+                        type="number"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                        placeholder="3000000"
+                        className="no-spinner"
                       />
                     </FormControl>
                     <FormDescription>
@@ -167,9 +170,12 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月間営業コスト（円）</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
+                      <Input
+                        type="number"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                        placeholder="900000"
+                        className="no-spinner"
                       />
                     </FormControl>
                     <FormDescription>
@@ -187,9 +193,12 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>平均取引額（円）</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
+                      <Input
+                        type="number"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                        placeholder="600000"
+                        className="no-spinner"
                       />
                     </FormControl>
                     <FormDescription>
@@ -312,9 +321,12 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>初期費用（円）</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
+                      <Input
+                        type="number"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                        placeholder="300000"
+                        className="no-spinner"
                       />
                     </FormControl>
                     <FormDescription>
@@ -332,9 +344,12 @@ export function ROICalculatorForm() {
                   <FormItem>
                     <FormLabel>月額費用（円）</FormLabel>
                     <FormControl>
-                      <CurrencyInput
-                        value={field.value}
-                        onChange={field.onChange}
+                      <Input
+                        type="number"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+                        placeholder="30000"
+                        className="no-spinner"
                       />
                     </FormControl>
                     <FormDescription>

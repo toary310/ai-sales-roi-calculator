@@ -1,7 +1,6 @@
 import { ROICalculator } from '@/lib/calculations/roi-calculator'
 import { ROICalculationResult, ROIFormData } from '@/types/roi'
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 interface ROIStore {
   // 状態
@@ -17,96 +16,101 @@ interface ROIStore {
   clearError: () => void
 }
 
-// デフォルトのフォームデータ
+// デフォルトのフォームデータ（完璧なROI推移: -1%開始、1年回収、安定成長を実現）
 const defaultFormData: ROIFormData = {
-  salesTeamSize: 10,
-  monthlySales: 5000000,
-  salesCost: 2500000,
-  averageDealSize: 500000,
-  conversionRate: 20,
-  salesCycleLength: 30,
+  salesTeamSize: 5,
+  monthlySales: 2800000,      // 280万円（より小規模な企業レベル）
+  salesCost: 840000,          // 30%（業界標準的な営業コスト比率）
+  averageDealSize: 470000,    // 47万円（B2B平均的な取引額）
+  conversionRate: 14,         // 14%（より保守的な成約率）
+  salesCycleLength: 50,       // 50日（B2B標準的な営業サイクル）
   aiToolType: 'crm-ai',
-  initialCost: 500000,
-  monthlyCost: 50000,
-  implementationPeriod: 3,
-  efficiencyImprovement: [30],
-  conversionImprovement: [15],
-  timeReduction: [25],
-  industry: 'technology',
-  companySize: 'medium',
+  initialCost: 600000,        // 60万円（初期費用をさらに増加）
+  monthlyCost: 55000,         // 5.5万円（月額費用も増加）
+  implementationPeriod: 4,    // 4ヶ月（導入期間を延長）
+  efficiencyImprovement: [5],  // 5%（さらに保守的な効率改善）
+  conversionImprovement: [1],  // 1%（さらに保守的な成約率改善）
+  timeReduction: [6],          // 6%（さらに保守的な時間削減）
+  industry: 'other',          // 業界係数の影響を抑制
+  companySize: 'small',       // 小企業に変更（係数の影響を抑制）
   hasExistingCrm: false,
-  additionalNotes: ''
+  additionalNotes: 'サンプルデータ: 現実的なAI導入シナリオ（-1%開始、1年回収、安定成長）'
 }
 
-export const useROIStore = create<ROIStore>()(
-  persist(
-    (set, get) => ({
-      // 初期状態
-      formData: null,
-      calculationResult: null,
-      isCalculating: false,
-      error: null,
+export const useROIStore = create<ROIStore>()((set, get) => ({
+  // 初期状態
+  formData: null,
+  calculationResult: null,
+  isCalculating: false,
+  error: null,
 
-      // フォームデータを設定
-      setFormData: (data: ROIFormData) => {
-        set({ formData: data, error: null })
-      },
+  // フォームデータを設定
+  setFormData: (data: ROIFormData) => {
+    set({ formData: data, error: null })
+  },
 
-      // ROI計算を実行
-      calculateROI: async (data: ROIFormData) => {
-        set({ isCalculating: true, error: null })
+  // ROI計算を実行
+  calculateROI: async (data: ROIFormData) => {
+    set({ isCalculating: true, error: null })
 
-        try {
-          // 計算処理をシミュレート（実際の処理時間）
-          await new Promise(resolve => setTimeout(resolve, 1000))
+    try {
+      // 計算処理をシミュレート（実際の処理時間）
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
-          const calculator = new ROICalculator(data)
-          const result = calculator.calculate()
+      const calculator = new ROICalculator(data)
+      const result = calculator.calculate()
 
-          set({
-            formData: data,
-            calculationResult: result,
-            isCalculating: false,
-            error: null
-          })
-        } catch (error) {
-          console.error('ROI calculation error:', error)
-          set({
-            isCalculating: false,
-            error: error instanceof Error ? error.message : '計算中にエラーが発生しました'
-          })
-        }
-      },
-
-      // 結果をクリア
-      clearResults: () => {
-        set({
-          formData: null,
-          calculationResult: null,
-          error: null
-        })
-      },
-
-      // エラーをクリア
-      clearError: () => {
-        set({ error: null })
-      }
-    }),
-    {
-      name: 'roi-calculator-storage',
-      // 永続化から除外する項目
-      partialize: (state) => ({
-        formData: state.formData,
-        calculationResult: state.calculationResult
+      set({
+        formData: data,
+        calculationResult: result,
+        isCalculating: false,
+        error: null
+      })
+    } catch (error) {
+      console.error('ROI calculation error:', error)
+      set({
+        isCalculating: false,
+        error: error instanceof Error ? error.message : '計算中にエラーが発生しました'
       })
     }
-  )
-)
+  },
+
+  // 結果をクリア
+  clearResults: () => {
+    set({
+      formData: null,
+      calculationResult: null,
+      error: null
+    })
+  },
+
+  // エラーをクリア
+  clearError: () => {
+    set({ error: null })
+  }
+}))
 
 // サンプルデータでROI計算を実行するヘルパー関数
 export const calculateSampleROI = async () => {
   const store = useROIStore.getState()
+
+  console.log('🎯 サンプルデータ計算開始')
+  console.log('📊 サンプルデータ:', defaultFormData)
+
+  // ローカルストレージを完全にクリア（古いpersistデータを削除）
+  try {
+    localStorage.removeItem('roi-calculator-storage')
+    console.log('🗑️ ローカルストレージをクリア')
+  } catch (error) {
+    console.log('ローカルストレージのクリアをスキップ:', error)
+  }
+
+  // 既存の結果をクリアしてからサンプルデータで計算
+  store.clearResults()
+  console.log('🔄 ストア結果をクリア')
+
   await store.calculateROI(defaultFormData)
+  console.log('✅ サンプルデータ計算完了')
 }
 
 // フォームデータの検証

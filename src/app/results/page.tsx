@@ -22,12 +22,14 @@ import {
     TrendingUp
 } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import React from "react"
 
 export default function ResultsPage() {
   const { calculationResult, formData, clearResults } = useROIStore()
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false)
   const [aiAnalysisKey, setAiAnalysisKey] = React.useState(0)
+  const router = useRouter()
 
   // ページ遷移時にAI分析をリセット
   React.useEffect(() => {
@@ -40,8 +42,29 @@ export default function ResultsPage() {
     setAiAnalysisKey(Date.now())
   }, [])
 
+  // 離脱確認機能
+  React.useEffect(() => {
+    if (!calculationResult) return
+
+    const confirmMessage = '計算結果が失われます。このページを離れてもよろしいですか？\n\n「OK」を押すと結果が削除され、他のページに移動します。'
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // モダンブラウザでは returnValue の設定が必要
+      e.preventDefault()
+      e.returnValue = confirmMessage
+      return confirmMessage
+    }
+
+    // ブラウザの戻る/進むボタン対応
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [calculationResult])
+
   const handleDownloadReport = async () => {
-    if (!calculationResult) {
+    if (!calculationResult || !formData) {
       alert('計算結果がありません。')
       return
     }
@@ -49,13 +72,30 @@ export default function ResultsPage() {
     try {
       setIsGeneratingReport(true)
 
+      // ROIData型に変換（CSVジェネレーターが期待する形式）
+      const roiData = {
+        ...calculationResult,
+        industry: formData.industry,
+        companySize: formData.companySize,
+        aiToolType: formData.aiToolType,
+        annualNetProfit: calculationResult.totalSavings - calculationResult.aiCosts.annualCost,
+        currentMetrics: {
+          ...calculationResult.currentMetrics,
+          salesTeamSize: formData.salesTeamSize,
+          salesCost: formData.salesCost,
+          averageDealSize: formData.averageDealSize,
+          conversionRate: formData.conversionRate,
+          salesCycleLength: formData.salesCycleLength
+        }
+      }
+
       // AI分析結果を取得（もしあれば）
       let aiAnalysis = null
       try {
         const response = await fetch('/api/ai-analysis', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(calculationResult),
+          body: JSON.stringify(roiData),
         })
         if (response.ok) {
           aiAnalysis = await response.json()
@@ -68,10 +108,25 @@ export default function ResultsPage() {
       const { PDFReportGenerator } = await import('@/lib/report/pdf-generator')
       await PDFReportGenerator.generateReport(calculationResult, aiAnalysis)
     } catch (error) {
-      console.error('レポート生成エラー:', error)
-      alert('レポートの生成に失敗しました。もう一度お試しください。')
+      console.error('PDFレポート生成エラー:', error)
+      alert('PDFレポートの生成に失敗しました。もう一度お試しください。')
     } finally {
       setIsGeneratingReport(false)
+    }
+  }
+
+  // ナビゲーション確認機能
+  const handleNavigation = (href: string) => {
+    if (calculationResult) {
+      const confirmed = window.confirm(
+        '計算結果が失われます。このページを離れてもよろしいですか？\n\n「OK」を押すと結果が削除され、他のページに移動します。'
+      )
+      if (confirmed) {
+        clearResults()
+        router.push(href)
+      }
+    } else {
+      router.push(href)
     }
   }
 
@@ -321,13 +376,16 @@ export default function ResultsPage() {
           disabled={isGeneratingReport}
         >
           <Download className="h-4 w-4" />
-          {isGeneratingReport ? 'レポート生成中...' : 'CSVレポートをダウンロード'}
+          {isGeneratingReport ? 'PDFレポート生成中...' : 'PDFレポートをダウンロード'}
         </Button>
-        <Button asChild variant="outline" size="lg">
-          <Link href="/calculator" className="flex items-center gap-2">
-            <Calculator className="h-4 w-4" />
-            条件を変更して再計算
-          </Link>
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => handleNavigation('/calculator')}
+          className="flex items-center gap-2"
+        >
+          <Calculator className="h-4 w-4" />
+          条件を変更して再計算
         </Button>
       </div>
     </div>
