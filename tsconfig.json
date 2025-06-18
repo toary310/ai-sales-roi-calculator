@@ -3,7 +3,9 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "es6"
+      "es2020",
+      "es2021.string",
+      "es2022.array"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -27,7 +29,10 @@
         "./src/*"
       ]
     },
-    "target": "ES2017"
+    "target": "ES2020",
+    "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
   },
   "include": [
     "next-env.d.ts",

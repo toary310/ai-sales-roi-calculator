@@ -106,11 +106,7 @@ table {
   border-spacing: 0;
 }
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
+/* 未使用のCSS変数を削除 */
 
 
 
@@ -158,18 +154,21 @@ table {
   }
 }
 
-/* ?J?X?^???A?j???[?V???? */
+/* カスタムアニメーション - パフォーマンス最適化 */
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.5s ease-in-out;
+    will-change: opacity;
   }
 
   .animate-slide-up {
     animation: slideUp 0.5s ease-out;
+    will-change: transform, opacity;
   }
 
   .animate-scale-in {
     animation: scaleIn 0.3s ease-out;
+    will-change: transform, opacity;
   }
 }
 
@@ -204,7 +203,7 @@ table {
   }
 }
 
-/* ???X?|???V?u???P */
+/* レスポンシブユーティリティ */
 @layer utilities {
   .container {
     @apply px-4 sm:px-6 lg:px-8;
@@ -223,7 +222,7 @@ table {
   }
 }
 
-/* ???z????t?B?[???h??X?e?b?p?[???\?? */
+/* 数値入力フィールドのステッパー非表示 */
 @layer utilities {
   .no-spinner::-webkit-outer-spin-button,
   .no-spinner::-webkit-inner-spin-button {

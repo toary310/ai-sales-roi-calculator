@@ -110,9 +110,9 @@ export class AIAnalysisService {
     const industry = roiData.industry || '不明'
     const companySize = roiData.companySize || '不明'
     const aiToolType = roiData.aiToolType || '不明'
-    const initialCost = roiData.initialCost || 0
-    const monthlyCost = roiData.monthlyCost || 0
-    const implementationPeriod = roiData.implementationPeriod || 0
+    const initialCost = roiData.aiCosts?.initialCost || 0
+    const monthlyCost = roiData.aiCosts?.monthlyCost || 0
+    const implementationPeriod = roiData.calculationParams?.implementationPeriod || 0
 
     const efficiencyImprovement = roiData.calculationParams?.efficiencyImprovement || 0
     const conversionImprovement = roiData.calculationParams?.conversionImprovement || 0

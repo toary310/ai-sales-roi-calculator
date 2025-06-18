@@ -3,7 +3,7 @@ import { ROIData } from '@/types'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const requestId = Math.random().toString(36).substr(2, 9)
+  const requestId = Math.random().toString(36).substring(2, 11)
   console.log(`🚀 API Route [${requestId}]: AI分析リクエスト受信`)
 
   try {

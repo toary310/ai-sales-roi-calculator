@@ -144,7 +144,7 @@ export default function CalculatorPage() {
                 <DialogTrigger asChild>
                   <Button size="lg" className="flex items-center gap-2">
                     <Calculator className="h-4 w-4" />
-                    詳細入力フォームを開く
+                    ROI計算を開始
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

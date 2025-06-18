@@ -301,9 +301,6 @@ export default function ResultsPage() {
         industry: formData.industry,
         companySize: formData.companySize,
         aiToolType: formData.aiToolType,
-        initialCost: formData.initialCost,
-        monthlyCost: formData.monthlyCost,
-        implementationPeriod: formData.implementationPeriod,
         annualNetProfit: calculationResult.totalSavings - calculationResult.aiCosts.annualCost,
         currentMetrics: {
           ...calculationResult.currentMetrics,

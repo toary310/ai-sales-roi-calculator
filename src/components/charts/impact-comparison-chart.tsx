@@ -153,7 +153,7 @@ export function ImpactComparisonChart({
                   <RadialBar
                     dataKey="value"
                     cornerRadius={10}
-                    fill={roiProgressData[0].fill}
+                    fill={roiProgressData[0]?.fill ?? '#8884d8'}
                   />
                   <text
                     x="50%"
@@ -161,7 +161,7 @@ export function ImpactComparisonChart({
                     textAnchor="middle"
                     dominantBaseline="middle"
                     className="text-2xl font-bold"
-                    fill={roiProgressData[0].fill}
+                    fill={roiProgressData[0]?.fill ?? '#8884d8'}
                   >
                     {calculationResult.roi}%
                   </text>

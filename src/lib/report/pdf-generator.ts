@@ -46,9 +46,9 @@ export class PDFReportGenerator {
     // AI導入計画
     lines.push('AI導入計画')
     lines.push(`AIツールタイプ,${roiData.aiToolType || '不明'}`)
-    lines.push(`初期費用,${(roiData.initialCost || 0).toLocaleString()}円`)
-    lines.push(`月額費用,${(roiData.monthlyCost || 0).toLocaleString()}円`)
-    lines.push(`導入期間,${roiData.implementationPeriod || 0}ヶ月`)
+    lines.push(`初期費用,${(roiData.aiCosts?.initialCost || 0).toLocaleString()}円`)
+    lines.push(`月額費用,${(roiData.aiCosts?.monthlyCost || 0).toLocaleString()}円`)
+    lines.push(`導入期間,${roiData.calculationParams?.implementationPeriod || 0}ヶ月`)
     lines.push('')
 
     // ROI計算結果

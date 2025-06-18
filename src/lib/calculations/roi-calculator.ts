@@ -92,9 +92,52 @@ export class ROICalculator {
   private sizeMultiplier: CompanySizeMultiplier
 
   constructor(formData: ROIFormData) {
-    this.formData = formData
-    this.industryBenchmark = INDUSTRY_BENCHMARKS[formData.industry] || INDUSTRY_BENCHMARKS.other
-    this.sizeMultiplier = COMPANY_SIZE_MULTIPLIERS[formData.companySize] || COMPANY_SIZE_MULTIPLIERS.medium
+    this.formData = this.validateAndNormalizeFormData(formData)
+    this.industryBenchmark = INDUSTRY_BENCHMARKS[formData.industry] ?? INDUSTRY_BENCHMARKS.other!
+    this.sizeMultiplier = COMPANY_SIZE_MULTIPLIERS[formData.companySize] ?? COMPANY_SIZE_MULTIPLIERS.medium!
+  }
+
+  // 入力データの妥当性検証と正規化
+  private validateAndNormalizeFormData(formData: ROIFormData): ROIFormData {
+    const normalized = { ...formData }
+
+    // 営業チーム規模の妥当性チェック
+    if (normalized.salesTeamSize < 1 || normalized.salesTeamSize > 10000) {
+      console.warn(`営業チーム規模が異常値です: ${normalized.salesTeamSize}人`)
+      normalized.salesTeamSize = Math.max(1, Math.min(normalized.salesTeamSize, 10000))
+    }
+
+    // 売上とコストの妥当性チェック
+    if (normalized.salesCost > normalized.monthlySales * 0.8) {
+      console.warn(`営業コストが売上の80%を超えています: ${normalized.salesCost}円`)
+      normalized.salesCost = normalized.monthlySales * 0.8
+    }
+
+    // 成約率の妥当性チェック（0.1% - 80%の範囲）
+    if (normalized.conversionRate < 0.1 || normalized.conversionRate > 80) {
+      console.warn(`成約率が異常値です: ${normalized.conversionRate}%`)
+      normalized.conversionRate = Math.max(0.1, Math.min(normalized.conversionRate, 80))
+    }
+
+    // 平均取引額の妥当性チェック
+    const estimatedDeals = normalized.monthlySales / normalized.averageDealSize
+    if (estimatedDeals < 0.1 || estimatedDeals > 10000) {
+      console.warn(`平均取引額から算出される月間取引数が異常です: ${estimatedDeals}件`)
+      normalized.averageDealSize = normalized.monthlySales / Math.max(1, Math.min(estimatedDeals, 1000))
+    }
+
+    // AI改善率の妥当性チェック
+    normalized.efficiencyImprovement = normalized.efficiencyImprovement.map(val =>
+      Math.max(0, Math.min(val, 100))
+    )
+    normalized.conversionImprovement = normalized.conversionImprovement.map(val =>
+      Math.max(0, Math.min(val, 100))
+    )
+    normalized.timeReduction = normalized.timeReduction.map(val =>
+      Math.max(0, Math.min(val, 90))
+    )
+
+    return normalized
   }
 
   // メイン計算メソッド
@@ -111,7 +154,7 @@ export class ROICalculator {
 
     const totalSavings = monthlyBenefit * 12 // 年間総効果（AIコスト差し引き前）
     const annualNetSavings = monthlySavings * 12 // 年間純削減額（AIコスト差し引き後）
-    const roi = this.calculateROI(annualNetSavings + aiCosts.totalCostYear1, aiCosts.totalCostYear1)
+    const roi = this.calculateROI(totalSavings, aiCosts.totalCostYear1) // 修正: 総効果を使用
     const paybackPeriod = this.calculatePaybackPeriod(aiCosts.totalCostYear1, monthlySavings)
 
     return {
@@ -119,8 +162,8 @@ export class ROICalculator {
       paybackPeriod,
       totalSavings,
       monthlySavings,
-      efficiencyGain: this.formData.efficiencyImprovement[0] * this.sizeMultiplier.efficiencyMultiplier,
-      revenueIncrease: this.calculateRevenueIncrease(),
+      efficiencyGain: (this.formData.efficiencyImprovement?.[0] || 0),
+      revenueIncrease: this.calculateRevenueIncrease(currentMetrics, projectedMetrics),
       costReduction: currentMetrics.monthlyCost - projectedMetrics.monthlyCost,
       timeReductionHours: this.calculateTimeReduction(),
       currentMetrics,
@@ -128,9 +171,9 @@ export class ROICalculator {
       aiCosts,
       monthlyProjection,
       calculationParams: {
-        efficiencyImprovement: this.formData.efficiencyImprovement[0],
-        conversionImprovement: this.formData.conversionImprovement[0],
-        timeReduction: this.formData.timeReduction[0],
+        efficiencyImprovement: this.formData.efficiencyImprovement?.[0] || 0,
+        conversionImprovement: this.formData.conversionImprovement?.[0] || 0,
+        timeReduction: this.formData.timeReduction?.[0] || 0,
         implementationPeriod: this.formData.implementationPeriod
       }
     }
@@ -139,8 +182,8 @@ export class ROICalculator {
   // 現在の営業指標を計算
   private calculateCurrentMetrics() {
     // ゼロ除算を防ぐためのチェック（計算用の最小値設定）
-    const averageDealSize = this.formData.averageDealSize || 1 // 計算用最小値
-    const salesTeamSize = this.formData.salesTeamSize || 1 // 最小値1人
+    const averageDealSize = Math.max(this.formData.averageDealSize || 1, 1) // 最小値1
+    const salesTeamSize = Math.max(this.formData.salesTeamSize || 1, 1) // 最小値1人
 
     const dealsPerMonth = this.formData.monthlySales / averageDealSize
     const salesPerPerson = this.formData.monthlySales / salesTeamSize
@@ -154,14 +197,30 @@ export class ROICalculator {
   }
 
   // AI導入後の予測指標を計算
-  private calculateProjectedMetrics(currentMetrics: any) {
-    const efficiencyGain = this.formData.efficiencyImprovement[0] * this.sizeMultiplier.efficiencyMultiplier / 100
-    const conversionImprovement = this.formData.conversionImprovement[0] / 100
-    const timeReduction = this.formData.timeReduction[0] / 100
+  private calculateProjectedMetrics(currentMetrics: ReturnType<typeof this.calculateCurrentMetrics>) {
+    // 業界ベンチマークを考慮した改善率計算
+    const baseEfficiencyGain = this.formData.efficiencyImprovement?.[0] || 0
+    const baseConversionImprovement = this.formData.conversionImprovement?.[0] || 0
+    const baseTimeReduction = this.formData.timeReduction?.[0] || 0
 
-    // 成約率向上による売上増加
-    const currentConversionRate = this.formData.conversionRate || 0.1 // 計算用最小値0.1%
-    const improvedConversionRate = currentConversionRate * (1 + conversionImprovement)
+    // 会社規模係数を適切に適用（改善率の種類に応じて）
+    const efficiencyGain = baseEfficiencyGain * this.sizeMultiplier.efficiencyMultiplier / 100
+    const conversionImprovement = baseConversionImprovement / 100 // 成約率改善は規模係数を適用しない
+    const timeReduction = baseTimeReduction * this.sizeMultiplier.efficiencyMultiplier / 100
+
+    // 業界ベンチマークとの比較による現実性チェック
+    const industryConversionRate = this.industryBenchmark.averageConversionRate / 100
+    const currentConversionRate = Math.max(
+      (this.formData.conversionRate || this.industryBenchmark.averageConversionRate) / 100,
+      industryConversionRate * 0.3 // 業界平均の30%を最小値とする
+    )
+
+    // 成約率向上による売上増加（業界ベンチマーク考慮）
+    const maxReasonableConversionRate = industryConversionRate * 1.5 // 業界平均の150%を上限
+    const improvedConversionRate = Math.min(
+      currentConversionRate * (1 + conversionImprovement),
+      maxReasonableConversionRate
+    )
     const conversionMultiplier = improvedConversionRate / currentConversionRate
 
     // 効率向上による処理能力増加
@@ -171,14 +230,16 @@ export class ROICalculator {
     const projectedDealsPerMonth = currentMetrics.dealsPerMonth * conversionMultiplier * efficiencyMultiplier
 
     // コスト削減（時間削減による人件費削減）
-    const costReductionFromTimeReduction = currentMetrics.monthlyCost * timeReduction * 0.6 // 60%が人件費と仮定
+    // 業界・会社規模に応じた人件費比率を動的計算
+    const laborCostRatio = this.calculateLaborCostRatio()
+    const costReductionFromTimeReduction = currentMetrics.monthlyCost * timeReduction * laborCostRatio
     const projectedMonthlyCost = currentMetrics.monthlyCost - costReductionFromTimeReduction
 
     return {
       monthlySales: projectedMonthlySales,
       monthlyCost: projectedMonthlyCost,
       dealsPerMonth: projectedDealsPerMonth,
-      salesPerPerson: projectedMonthlySales / this.formData.salesTeamSize
+      salesPerPerson: projectedMonthlySales / Math.max(this.formData.salesTeamSize || 1, 1)
     }
   }
 
@@ -217,9 +278,11 @@ export class ROICalculator {
   }
 
   // 売上増加率を計算
-  private calculateRevenueIncrease(): number {
-    const currentSales = this.formData.monthlySales
-    const projectedMetrics = this.calculateProjectedMetrics(this.calculateCurrentMetrics())
+  private calculateRevenueIncrease(
+    currentMetrics: ReturnType<typeof this.calculateCurrentMetrics>,
+    projectedMetrics: ReturnType<typeof this.calculateProjectedMetrics>
+  ): number {
+    const currentSales = currentMetrics.monthlySales
 
     // 現在の売上が0の場合は、新規売上創出として扱う
     if (currentSales === 0) {
@@ -230,18 +293,76 @@ export class ROICalculator {
     return Math.round(((projectedMetrics.monthlySales - currentSales) / currentSales) * 100)
   }
 
+  // 業界・会社規模に応じた人件費比率を計算
+  private calculateLaborCostRatio(): number {
+    // 業界別基準人件費比率
+    const industryLaborRatios: Record<string, number> = {
+      technology: 0.65,      // IT業界は人件費比率が高い
+      manufacturing: 0.45,   // 製造業は設備費が多い
+      finance: 0.70,         // 金融は人件費中心
+      healthcare: 0.60,      // 医療は人件費とシステム費
+      retail: 0.50,          // 小売は人件費と物流費
+      other: 0.55            // その他の平均
+    }
+
+    // 会社規模による調整
+    const sizeAdjustments: Record<string, number> = {
+      startup: 0.8,      // スタートアップは人件費比率が高い
+      small: 0.9,        // 小企業も人件費中心
+      medium: 1.0,       // 中企業は標準
+      large: 1.1,        // 大企業は若干高い
+      enterprise: 1.2    // 大手企業は管理費も含む
+    }
+
+    const baseRatio = industryLaborRatios[this.formData.industry] ?? industryLaborRatios.other!
+    const sizeAdjustment = sizeAdjustments[this.formData.companySize] ?? sizeAdjustments.medium!
+
+    return Math.min(baseRatio * sizeAdjustment, 0.85) // 最大85%に制限
+  }
+
   // 時間削減量を計算（時間/月）
   private calculateTimeReduction(): number {
-    const timeReductionRate = this.formData.timeReduction[0] / 100
-    const workingHoursPerMonth = this.formData.salesTeamSize * 160 // 1人あたり160時間/月と仮定
+    const timeReductionRate = (this.formData.timeReduction?.[0] || 0) / 100
+
+    // 業界・会社規模に応じた実労働時間を計算
+    const baseWorkingHours = this.calculateRealWorkingHours()
+    const workingHoursPerMonth = Math.max(this.formData.salesTeamSize || 1, 1) * baseWorkingHours
+
     return Math.round(workingHoursPerMonth * timeReductionRate)
+  }
+
+  // 実労働時間を業界・会社規模に応じて計算
+  private calculateRealWorkingHours(): number {
+    // 業界別基準労働時間（月間）
+    const industryWorkingHours: Record<string, number> = {
+      technology: 180,     // IT業界は長時間労働傾向
+      manufacturing: 170,  // 製造業は標準的
+      finance: 175,        // 金融は若干長め
+      healthcare: 165,     // 医療は規制が厳しい
+      retail: 160,         // 小売は標準的
+      other: 170           // その他の平均
+    }
+
+    // 会社規模による調整
+    const sizeAdjustments: Record<string, number> = {
+      startup: 1.15,     // スタートアップは長時間労働
+      small: 1.05,       // 小企業は若干長め
+      medium: 1.0,       // 中企業は標準
+      large: 0.95,       // 大企業は労働環境が整備
+      enterprise: 0.90   // 大手企業は最も規制が厳しい
+    }
+
+    const baseHours = industryWorkingHours[this.formData.industry] ?? industryWorkingHours.other!
+    const sizeAdjustment = sizeAdjustments[this.formData.companySize] ?? sizeAdjustments.medium!
+
+    return Math.round(baseHours * sizeAdjustment)
   }
 
   // 月別推移を計算
   private calculateMonthlyProjection(
-    currentMetrics: any,
-    projectedMetrics: any,
-    aiCosts: any
+    currentMetrics: ReturnType<typeof this.calculateCurrentMetrics>,
+    projectedMetrics: ReturnType<typeof this.calculateProjectedMetrics>,
+    aiCosts: ReturnType<typeof this.calculateAICosts>
   ): MonthlyProjection[] {
     const monthlyData: MonthlyProjection[] = []
     const implementationPeriod = this.formData.implementationPeriod
@@ -258,12 +379,17 @@ export class ROICalculator {
       const costs = currentMetrics.monthlyCost -
         (currentMetrics.monthlyCost - projectedMetrics.monthlyCost) * effectivenessFactor
 
-      const netBenefit = (sales - currentMetrics.monthlySales) +
-        (currentMetrics.monthlyCost - costs) - aiCosts.monthlyCost
+      const grossBenefit = (sales - currentMetrics.monthlySales) +
+        (currentMetrics.monthlyCost - costs) // AIコスト差し引き前の総効果
+      const netBenefit = grossBenefit - aiCosts.monthlyCost // AIコスト差し引き後
 
       const cumulativeSavings = monthlyData.reduce((sum, data) => sum + data.netBenefit, 0) + netBenefit
-      const cumulativeROI = aiCosts.totalCostYear1 > 0
-        ? Math.round(((cumulativeSavings) / aiCosts.totalCostYear1) * 100)
+      const cumulativeGrossBenefit = monthlyData.reduce((sum, data) => sum + data.grossBenefit, 0) + grossBenefit
+
+      // 月別ROI: 累積投資額に対する累積効果
+      const cumulativeInvestment = aiCosts.initialCost + (aiCosts.monthlyCost * month)
+      const cumulativeROI = cumulativeInvestment > 0
+        ? Math.round(((cumulativeGrossBenefit - cumulativeInvestment) / cumulativeInvestment) * 100)
         : 0
 
       monthlyData.push({
@@ -271,6 +397,7 @@ export class ROICalculator {
         sales: Math.round(sales),
         costs: Math.round(costs),
         aiCosts: aiCosts.monthlyCost,
+        grossBenefit: Math.round(grossBenefit),
         netBenefit: Math.round(netBenefit),
         cumulativeROI,
         cumulativeSavings: Math.round(cumulativeSavings)

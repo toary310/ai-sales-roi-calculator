@@ -58,19 +58,19 @@ export function ROICalculatorForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      salesTeamSize: 10,
-      monthlySales: 5000000,
-      salesCost: 2500000,
-      averageDealSize: 500000,
-      conversionRate: 20,
-      salesCycleLength: 30,
+      salesTeamSize: 5,
+      monthlySales: 3000000,      // 300万円（現実的な中小企業レベル）
+      salesCost: 900000,          // 30%（業界標準的な営業コスト比率）
+      averageDealSize: 600000,    // 60万円（B2B平均的な取引額）
+      conversionRate: 15,         // 15%（現実的な成約率）
+      salesCycleLength: 45,       // 45日（B2B標準的な営業サイクル）
       aiToolType: "",
-      initialCost: 500000,
-      monthlyCost: 50000,
+      initialCost: 300000,        // 30万円（現実的な初期費用）
+      monthlyCost: 30000,         // 3万円（現実的な月額費用）
       implementationPeriod: 3,
-      efficiencyImprovement: [30],
-      conversionImprovement: [15],
-      timeReduction: [25],
+      efficiencyImprovement: [25], // 25%（現実的な効率改善）
+      conversionImprovement: [10], // 10%（現実的な成約率改善）
+      timeReduction: [20],        // 20%（現実的な時間削減）
       industry: "",
       companySize: "",
       hasExistingCrm: false,

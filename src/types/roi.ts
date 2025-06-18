@@ -23,7 +23,7 @@ export interface ROIFormData {
   industry: string
   companySize: string
   hasExistingCrm: boolean
-  additionalNotes?: string
+  additionalNotes?: string | undefined
 }
 
 // 計算結果の型
@@ -31,8 +31,8 @@ export interface ROICalculationResult {
   // 基本ROI指標
   roi: number // ROI (%)
   paybackPeriod: number // 投資回収期間（ヶ月）
-  totalSavings: number // 年間総削減額
-  monthlySavings: number // 月間削減額
+  totalSavings: number // 年間総効果（AIコスト差し引き前）
+  monthlySavings: number // 月間純削減額（AIコスト差し引き後）
 
   // 効果分析
   efficiencyGain: number // 営業効率向上率 (%)
@@ -81,6 +81,7 @@ export interface MonthlyProjection {
   sales: number
   costs: number
   aiCosts: number
+  grossBenefit: number
   netBenefit: number
   cumulativeROI: number
   cumulativeSavings: number
@@ -105,20 +106,17 @@ export interface CompanySizeMultiplier {
 }
 
 // AI分析用のROIデータ型（ROICalculationResultの拡張）
-export interface ROIData extends Omit<ROICalculationResult, 'currentMetrics'> {
-  // フォームデータからの追加情報
+export interface ROIData extends ROICalculationResult {
+  // フォームデータからの追加情報（重複排除済み）
   industry?: string
   companySize?: string
   aiToolType?: string
-  initialCost?: number
-  monthlyCost?: number
-  implementationPeriod?: number
 
   // 計算結果の追加フィールド
   annualNetProfit?: number
 
-  // 現在のメトリクスの拡張（オプショナル）
-  currentMetrics?: {
+  // 現在のメトリクスの拡張
+  currentMetrics: {
     monthlySales: number
     monthlyCost: number
     dealsPerMonth: number

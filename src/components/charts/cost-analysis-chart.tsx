@@ -159,7 +159,7 @@ export function CostAnalysisChart({
             <div className="text-center">
               <p className="text-xs text-muted-foreground">年間AIコスト</p>
               <p className="text-lg font-semibold text-red-600">
-                {(chartData[0]?.aiCosts * 12 || 0).toLocaleString()}万円
+                {((chartData[0]?.aiCosts ?? 0) * 12).toLocaleString()}万円
               </p>
             </div>
             <div className="text-center">
@@ -171,9 +171,9 @@ export function CostAnalysisChart({
             <div className="text-center">
               <p className="text-xs text-muted-foreground">年間純利益</p>
               <p className={`text-lg font-semibold ${
-                chartData[chartData.length - 1]?.netBenefit >= 0 ? 'text-green-600' : 'text-red-600'
+                (chartData[chartData.length - 1]?.netBenefit ?? 0) >= 0 ? 'text-green-600' : 'text-red-600'
               }`}>
-                {chartData[chartData.length - 1]?.netBenefit >= 0 ? '+' : ''}
+                {(chartData[chartData.length - 1]?.netBenefit ?? 0) >= 0 ? '+' : ''}
                 {chartData.reduce((sum, item) => sum + item.netBenefit, 0).toLocaleString()}万円
               </p>
             </div>

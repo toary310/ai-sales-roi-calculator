@@ -1,7 +1,7 @@
+import { ROICalculator } from '@/lib/calculations/roi-calculator'
+import { ROICalculationResult, ROIFormData } from '@/types/roi'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { ROIFormData, ROICalculationResult } from '@/types/roi'
-import { ROICalculator } from '@/lib/calculations/roi-calculator'
 
 interface ROIStore {
   // 状態
@@ -55,15 +55,15 @@ export const useROIStore = create<ROIStore>()(
       // ROI計算を実行
       calculateROI: async (data: ROIFormData) => {
         set({ isCalculating: true, error: null })
-        
+
         try {
           // 計算処理をシミュレート（実際の処理時間）
           await new Promise(resolve => setTimeout(resolve, 1000))
-          
+
           const calculator = new ROICalculator(data)
           const result = calculator.calculate()
-          
-          set({ 
+
+          set({
             formData: data,
             calculationResult: result,
             isCalculating: false,
@@ -71,7 +71,7 @@ export const useROIStore = create<ROIStore>()(
           })
         } catch (error) {
           console.error('ROI calculation error:', error)
-          set({ 
+          set({
             isCalculating: false,
             error: error instanceof Error ? error.message : '計算中にエラーが発生しました'
           })
@@ -80,7 +80,8 @@ export const useROIStore = create<ROIStore>()(
 
       // 結果をクリア
       clearResults: () => {
-        set({ 
+        set({
+          formData: null,
           calculationResult: null,
           error: null
         })
