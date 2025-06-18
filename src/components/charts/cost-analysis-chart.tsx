@@ -44,19 +44,19 @@ export function CostAnalysisChart({
           <p className="font-semibold text-gray-900">{label}</p>
           <div className="space-y-1 mt-2">
             <p className="text-red-600">
-              <span className="font-medium">AIコスト:</span> {data.aiCosts.toLocaleString()}万円/月
+              <span className="font-medium">AIコスト:</span> ¥{data.aiCosts.toLocaleString()}万円/月
             </p>
             <p className="text-blue-600">
-              <span className="font-medium">運営コスト:</span> {data.operationalCosts.toLocaleString()}万円/月
+              <span className="font-medium">運営コスト:</span> ¥{data.operationalCosts.toLocaleString()}万円/月
             </p>
             <p className="text-orange-600">
-              <span className="font-medium">累積AIコスト:</span> {data.cumulativeAICosts.toLocaleString()}万円
+              <span className="font-medium">累積AIコスト:</span> ¥{data.cumulativeAICosts.toLocaleString()}万円
             </p>
             <p className="text-green-600">
-              <span className="font-medium">累積削減額:</span> {data.cumulativeSavings.toLocaleString()}万円
+              <span className="font-medium">累積削減額:</span> ¥{data.cumulativeSavings.toLocaleString()}万円
             </p>
             <p className={`font-semibold ${data.netBenefit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              <span className="font-medium">純利益:</span> {data.netBenefit >= 0 ? '+' : ''}{data.netBenefit.toLocaleString()}万円
+              <span className="font-medium">純利益:</span> {data.netBenefit >= 0 ? '+' : ''}¥{data.netBenefit.toLocaleString()}万円
             </p>
             {data.breakEven && (
               <p className="text-purple-600 font-semibold">

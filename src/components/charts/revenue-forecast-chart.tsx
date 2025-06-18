@@ -45,19 +45,19 @@ export function RevenueForecastChart({
           <p className="font-semibold text-gray-900">{label}</p>
           <div className="space-y-1 mt-2">
             <p className="text-gray-600">
-              <span className="font-medium">現在の売上:</span> {data.currentSales.toLocaleString()}万円
+              <span className="font-medium">現在の売上:</span> ¥{data.currentSales.toLocaleString()}万円
             </p>
             <p className="text-blue-600">
-              <span className="font-medium">予測売上:</span> {data.projectedSales.toLocaleString()}万円
+              <span className="font-medium">予測売上:</span> ¥{data.projectedSales.toLocaleString()}万円
             </p>
             <p className="text-green-600">
-              <span className="font-medium">売上改善:</span> +{data.improvement.toLocaleString()}万円
+              <span className="font-medium">売上改善:</span> +¥{data.improvement.toLocaleString()}万円
             </p>
             <p className="text-orange-600">
-              <span className="font-medium">営業コスト:</span> {data.costs.toLocaleString()}万円
+              <span className="font-medium">営業コスト:</span> ¥{data.costs.toLocaleString()}万円
             </p>
             <p className="text-red-600">
-              <span className="font-medium">AIコスト:</span> {data.aiCosts.toLocaleString()}万円
+              <span className="font-medium">AIコスト:</span> ¥{data.aiCosts.toLocaleString()}万円
             </p>
           </div>
         </div>

@@ -41,7 +41,7 @@ export function ImpactComparisonChart({
     },
     {
       name: "時間削減",
-      value: Math.round((calculationResult.timeReductionHours / (calculationResult.currentMetrics.salesPerPerson * 160)) * 100),
+      value: Math.round((calculationResult.timeReductionHours / (calculationResult.currentMetrics.monthlySales > 0 ? 160 : 1)) * 100),
       color: "#f59e0b",
       description: "作業時間の削減率"
     }
@@ -99,7 +99,7 @@ export function ImpactComparisonChart({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* 効果分析円グラフ */}
           <div className="space-y-2">
             <h4 className="font-semibold text-center">効果分析</h4>

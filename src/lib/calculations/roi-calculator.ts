@@ -263,7 +263,7 @@ export class ROICalculator {
 
       const cumulativeSavings = monthlyData.reduce((sum, data) => sum + data.netBenefit, 0) + netBenefit
       const cumulativeROI = aiCosts.totalCostYear1 > 0
-        ? Math.round(((cumulativeSavings - aiCosts.initialCost) / aiCosts.totalCostYear1) * 100)
+        ? Math.round(((cumulativeSavings) / aiCosts.totalCostYear1) * 100)
         : 0
 
       monthlyData.push({
