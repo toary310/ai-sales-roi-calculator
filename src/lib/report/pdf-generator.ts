@@ -8,26 +8,36 @@ declare module 'jspdf' {
   }
 }
 
+/**
+ * PDFレポート生成クラス
+ * ROI計算結果とAI分析結果を基に、プロフェッショナルなPDFレポートを生成
+ * jsPDFライブラリを使用し、文字化けを避けるため英語でレポートを作成
+ */
 export class PDFReportGenerator {
+  /**
+   * PDFレポートを生成してダウンロードするメインメソッド
+   * @param calculationResult - ROI計算結果データ
+   * @param aiAnalysis - AI分析結果（オプション）
+   */
   static async generateReport(
     calculationResult: ROICalculationResult,
     aiAnalysis?: AIAnalysisResult
   ): Promise<void> {
     try {
-      // 動的インポートでjsPDFを読み込み
+      // 動的インポートでjsPDFライブラリを読み込み（バンドルサイズ最適化）
       const { default: jsPDF } = await import('jspdf')
 
-      // PDFドキュメント作成
+      // A4縦向きのPDFドキュメントを作成
       const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
+        orientation: 'portrait',  // 縦向き
+        unit: 'mm',              // ミリメートル単位
+        format: 'a4'             // A4サイズ
       })
 
-      // PDFコンテンツ生成
+      // PDFコンテンツの生成（テーブル形式レイアウト）
       await this.generatePDFContentWithTables(doc, calculationResult, aiAnalysis)
 
-      // PDFをダウンロード
+      // 日付付きファイル名でPDFをダウンロード
       const filename = `AI_Sales_ROI_Report_${new Date().toISOString().split('T')[0]}.pdf`
       doc.save(filename)
     } catch (error) {

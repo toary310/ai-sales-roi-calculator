@@ -1,23 +1,41 @@
 import { ROIData } from '@/types'
 import OpenAI from 'openai'
 
-// OpenAI クライアントの初期化
+/**
+ * OpenAI クライアントの初期化
+ * 環境変数からAPIキーを取得してクライアントを作成
+ */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+/**
+ * AI分析結果の型定義
+ * OpenAI GPT-3.5-turboから返される分析結果の構造
+ */
 export interface AIAnalysisResult {
-  riskAnalysis: string
-  industryComparison: string
-  recommendations: string[]
-  marketTrends: string
-  confidenceLevel: number
-  keyInsights: string[]
+  riskAnalysis: string        // リスク分析（投資リスクの評価）
+  industryComparison: string  // 業界比較（同業他社との比較分析）
+  recommendations: string[]   // 推奨事項（具体的な改善提案のリスト）
+  marketTrends: string       // 市場トレンド（業界の動向分析）
+  confidenceLevel: number    // 信頼度（分析の確実性を0-100%で表現）
+  keyInsights: string[]      // 重要な洞察（特に注目すべきポイント）
 }
 
+/**
+ * AI分析サービスクラス
+ * ROIデータを基にOpenAI GPT-3.5-turboを使用して専門的な分析を生成
+ */
 export class AIAnalysisService {
+  /**
+   * ROIデータを基にAI分析を生成するメインメソッド
+   * @param roiData - ROI計算結果と企業情報を含むデータ
+   * @returns Promise<AIAnalysisResult> - AI分析結果
+   */
   static async generateAnalysis(roiData: ROIData): Promise<AIAnalysisResult> {
     const startTime = Date.now()
+
+    // 分析開始のログ出力（デバッグ用）
     console.log('🤖 AI分析開始:', {
       timestamp: new Date().toISOString(),
       industry: roiData.industry,
@@ -26,9 +44,12 @@ export class AIAnalysisService {
     })
 
     try {
+      // 分析用プロンプトの構築
       const prompt = this.buildAnalysisPrompt(roiData)
 
       console.log('📡 OpenAI API呼び出し開始...')
+
+      // OpenAI GPT-3.5-turboを使用してAI分析を実行
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [

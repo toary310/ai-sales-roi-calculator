@@ -1,6 +1,10 @@
 import { CompanySizeMultiplier, IndustryBenchmark, MonthlyProjection, ROICalculationResult, ROIFormData } from '@/types/roi'
 
-// 業界別ベンチマークデータ
+/**
+ * 業界別ベンチマークデータ
+ * 各業界の平均的な営業指標とAI導入効果を定義
+ * これらの値は業界調査データに基づいて設定されている
+ */
 const INDUSTRY_BENCHMARKS: Record<string, IndustryBenchmark> = {
   technology: {
     industry: 'IT・テクノロジー',
@@ -52,7 +56,11 @@ const INDUSTRY_BENCHMARKS: Record<string, IndustryBenchmark> = {
   }
 }
 
-// 会社規模別係数
+/**
+ * 会社規模別係数
+ * 企業規模によるAI導入の効率性、コスト、実装期間の違いを反映
+ * 大企業ほど効率改善は小さいが、コストは高く、実装期間は長い傾向
+ */
 const COMPANY_SIZE_MULTIPLIERS: Record<string, CompanySizeMultiplier> = {
   startup: {
     size: 'スタートアップ',
@@ -86,14 +94,28 @@ const COMPANY_SIZE_MULTIPLIERS: Record<string, CompanySizeMultiplier> = {
   }
 }
 
+/**
+ * ROI計算エンジンクラス
+ * AI営業ツール導入のROI（投資収益率）を包括的に計算する
+ * 業界ベンチマーク、企業規模、現実的な制約を考慮した精密な計算を実行
+ */
 export class ROICalculator {
-  private formData: ROIFormData
-  private industryBenchmark: IndustryBenchmark
-  private sizeMultiplier: CompanySizeMultiplier
+  private formData: ROIFormData              // 入力されたフォームデータ
+  private industryBenchmark: IndustryBenchmark  // 業界ベンチマークデータ
+  private sizeMultiplier: CompanySizeMultiplier  // 企業規模別係数
 
+  /**
+   * ROI計算エンジンのコンストラクタ
+   * @param formData - ユーザーが入力したROI計算用データ
+   */
   constructor(formData: ROIFormData) {
+    // 入力データの妥当性検証と正規化
     this.formData = this.validateAndNormalizeFormData(formData)
+
+    // 業界ベンチマークの設定（該当なしの場合は'other'を使用）
     this.industryBenchmark = INDUSTRY_BENCHMARKS[formData.industry] ?? INDUSTRY_BENCHMARKS.other!
+
+    // 企業規模別係数の設定（該当なしの場合は'medium'を使用）
     this.sizeMultiplier = COMPANY_SIZE_MULTIPLIERS[formData.companySize] ?? COMPANY_SIZE_MULTIPLIERS.medium!
   }
 

@@ -1,3 +1,15 @@
+/**
+ * ROI計算結果表示ページ
+ *
+ * このページは以下の機能を提供します：
+ * - ROI計算結果の詳細表示（ROI、投資回収期間、年間削減効果）
+ * - 効果分析（営業効率向上、売上増加、コスト削減、時間削減）
+ * - データビジュアライゼーション（ROI推移、効果比較、収益予測、コスト分析）
+ * - AI分析結果の表示（リスク分析、業界比較、推奨事項）
+ * - PDFレポートのダウンロード機能
+ * - 離脱確認機能（意図しない結果消失を防止）
+ */
+
 "use client"
 
 import { AIAnalysisSection } from "@/components/ai/ai-analysis-section"
@@ -25,13 +37,23 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import React from "react"
 
+/**
+ * ROI計算結果表示ページのメインコンポーネント
+ */
 export default function ResultsPage() {
+  // Zustandストアから計算結果とフォームデータを取得
   const { calculationResult, formData, clearResults } = useROIStore()
+
+  // PDFレポート生成の状態管理
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false)
+
+  // AI分析セクションの再レンダリング制御用キー
   const [aiAnalysisKey, setAiAnalysisKey] = React.useState(0)
+
+  // Next.jsのルーター（ページ遷移用）
   const router = useRouter()
 
-  // ページ遷移時にAI分析をリセット
+  // ページ遷移時にAI分析をリセット（新しい計算結果に対応）
   React.useEffect(() => {
     // 新しい計算結果が来た時にAI分析をリセット
     setAiAnalysisKey(prev => prev + 1)
