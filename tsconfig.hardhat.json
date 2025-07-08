@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "es2019",
+    "types": ["node", "chai", "mocha", "hardhat"]
+  },
+  "include": ["hardhat.config.ts", "scripts", "test"]
+}
