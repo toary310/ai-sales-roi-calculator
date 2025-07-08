@@ -1,7 +1,10 @@
-import "@nomicfoundation/hardhat-toolbox"
-import { HardhatUserConfig } from "hardhat/config"
-import { register } from "ts-node"
-import "ts-node/register"
+import { config as loadEnv } from 'dotenv';
+loadEnv({ path: '.env.local' });   // ← 必ず最初に実行
+
+import "@nomicfoundation/hardhat-toolbox";
+import { HardhatUserConfig } from "hardhat/config";
+import { register } from "ts-node";
+import "ts-node/register";
 
 register({ project: "tsconfig.hardhat.json" })
 

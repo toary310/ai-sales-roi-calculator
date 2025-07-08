@@ -21,6 +21,7 @@ import {
 } from "@/components/charts"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { MintNftButton } from "@/components/ui/mint-nft-button"
 import { useROIStore } from "@/lib/store/roi-store"
 import { formatPaybackPeriod } from "@/lib/utils/format-period"
 import {
@@ -391,6 +392,7 @@ export default function ResultsPage() {
 
       {/* アクションボタン - フッターとAI分析の間の中央配置 */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center my-8">
+        <MintNftButton />
         <Button
           size="lg"
           className="flex items-center gap-2"
