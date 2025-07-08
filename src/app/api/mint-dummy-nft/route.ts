@@ -35,13 +35,16 @@ export async function POST(request: NextRequest) {
     })
 
     // gas estimation
-    const gas = await publicClient.estimateContractGas({
+    const estimatedGas = await publicClient.estimateContractGas({
       address: DUMMY_NFT_ADDRESS,
       abi: DUMMY_NFT_ABI,
       functionName: 'mint',
       args: [address],
       account,
     })
+
+    // 20% buffer to account for variance
+    const gas = estimatedGas * 120n / 100n
 
     const hash = await walletClient.writeContract({
       address: DUMMY_NFT_ADDRESS,

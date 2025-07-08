@@ -15,10 +15,13 @@ export function useMintDummyNft(): MintHookResult {
   const { toast } = useToast()
 
   const [txHash, setTxHash] = useState<string | undefined>()
-  const [isPending, setIsPending] = useState(false)
+  const [isMinting, setIsMinting] = useState(false)
 
   // トランザクション受領
   const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash, enabled: !!txHash })
+
+  // ローディング状態: リクエスト中 or レシート待ち
+  const loading = isMinting || (!!txHash && !isSuccess)
 
   useEffect(() => {
     if (isSuccess && txHash) {
@@ -35,6 +38,10 @@ export function useMintDummyNft(): MintHookResult {
           </a>
         ),
       })
+
+      // 状態リセットで再度Mint可能に
+      setTxHash(undefined)
+      setIsMinting(false)
     }
   }, [isSuccess, txHash, toast])
 
@@ -44,7 +51,7 @@ export function useMintDummyNft(): MintHookResult {
       return
     }
     try {
-      setIsPending(true)
+      setIsMinting(true)
       const res = await fetch('/api/mint-dummy-nft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,10 +62,11 @@ export function useMintDummyNft(): MintHookResult {
       setTxHash(data.hash)
     } catch (e: any) {
       toast({ title: 'Mint 失敗', description: e.message, variant: 'destructive' })
+      setIsMinting(false)
     } finally {
-      setIsPending(false)
+      /* レシート待ち中は isMinting を維持し、useEffect でリセット */
     }
   }
 
-  return { mint, isPending }
+  return { mint, isPending: loading }
 }
