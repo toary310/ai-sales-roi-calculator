@@ -1,8 +1,7 @@
 "use client"
 
-import { useAccount, useWaitForTransactionReceipt, useWriteContract } from "wagmi"
-import { DUMMY_NFT_ABI, DUMMY_NFT_ADDRESS } from "@/lib/web3/mint-dummy-nft"
-import { useEffect } from "react"
+import { useAccount, useWaitForTransactionReceipt } from "wagmi"
+import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
 
 interface MintHookResult {
@@ -15,28 +14,11 @@ export function useMintDummyNft(): MintHookResult {
 
   const { toast } = useToast()
 
-  const {
-    data: txHash,
-    isPending,
-    error,
-    reset,
-    writeContract,
-  } = useWriteContract()
+  const [txHash, setTxHash] = useState<string | undefined>()
+  const [isPending, setIsPending] = useState(false)
 
   // トランザクション受領
-  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash })
-
-  // トースト通知
-  useEffect(() => {
-    if (error) {
-      toast({
-        title: "Mint 失敗",
-        description: error.message,
-        variant: "destructive",
-      })
-      reset()
-    }
-  }, [error, reset, toast])
+  const { isSuccess } = useWaitForTransactionReceipt({ hash: txHash, enabled: !!txHash })
 
   useEffect(() => {
     if (isSuccess && txHash) {
@@ -56,17 +38,26 @@ export function useMintDummyNft(): MintHookResult {
     }
   }, [isSuccess, txHash, toast])
 
-  const mint = () => {
+  const mint = async () => {
     if (!address) {
       toast({ title: "Wallet 未接続", variant: "destructive" })
       return
     }
-    writeContract({
-      address: DUMMY_NFT_ADDRESS,
-      abi: DUMMY_NFT_ABI,
-      functionName: "mint",
-      args: [address],
-    })
+    try {
+      setIsPending(true)
+      const res = await fetch('/api/mint-dummy-nft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Mint failed')
+      setTxHash(data.hash)
+    } catch (e: any) {
+      toast({ title: 'Mint 失敗', description: e.message, variant: 'destructive' })
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return { mint, isPending }

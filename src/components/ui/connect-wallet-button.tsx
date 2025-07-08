@@ -1,9 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { useAccount, useConnect, useDisconnect } from "wagmi"
-import { cn } from "@/lib/utils"
 import { useSiweAuth } from "@/hooks/use-siwe"
+import { cn } from "@/lib/utils"
+import { useAccount, useConnect, useDisconnect } from "wagmi"
 
 // ウォレットアドレスを 0x1234...abcd 形式で短縮表示
 const truncateAddress = (address?: string) => {
@@ -46,7 +46,7 @@ export function ConnectWalletButton() {
     >
       {isConnected
         ? authenticated
-          ? truncateAddress(address)
+          ? <span className="font-mono">{truncateAddress(address)}</span>
           : siweLoading
             ? "Signing..."
             : "Sign In"

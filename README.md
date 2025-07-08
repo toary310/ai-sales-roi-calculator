@@ -82,10 +82,10 @@ AI導入による営業効果とROIを正確に計算・可視化する次世代
    OPENAI_API_KEY=your_openai_api_key_here
 
    # Polygon Amoy RPC (フロントエンド & wagmi)
-   NEXT_PUBLIC_AMOY_RPC=https://rpc-amoy.polygon.technology
+   NEXT_PUBLIC_AMOY_RPC="https://rpc-amoy.polygon.technology"
 
    # Hardhat / デプロイ用
-   AMOY_RPC=https://rpc-amoy.polygon.technology
+   AMOY_RPC="https://rpc-amoy.polygon.technology"
    PRIVATE_KEY=your_private_key_for_deploy
    ```
 

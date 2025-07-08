@@ -19,7 +19,7 @@ export const wagmiConfig = createConfig({
   chains: [polygonAmoy],
   connectors: [metaMask()],
   transports: {
-    [polygonAmoy.id]: http(process.env.NEXT_PUBLIC_AMOY_RPC),
+    [polygonAmoy.id]: http(process.env.NEXT_PUBLIC_AMOY_RPC || 'https://rpc-amoy.polygon.technology'),
   },
   ssr: true,
 })
