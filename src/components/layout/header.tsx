@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { ConnectWalletButton } from "@/components/ui/connect-wallet-button"
 import {
     NavigationMenu,
     NavigationMenuItem,
@@ -73,6 +74,7 @@ export function Header() {
               </Link>
             </Button>
           )}
+          <ConnectWalletButton />
         </div>
       </div>
     </header>
