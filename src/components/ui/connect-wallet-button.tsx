@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { useAccount, useConnect, useDisconnect } from "wagmi"
 import { cn } from "@/lib/utils"
+import { useSiweAuth } from "@/hooks/use-siwe"
 
 // ウォレットアドレスを 0x1234...abcd 形式で短縮表示
 const truncateAddress = (address?: string) => {
@@ -17,9 +18,16 @@ export function ConnectWalletButton() {
 
   const { disconnect } = useDisconnect()
 
+  const { signIn, loading: siweLoading, authenticated } = useSiweAuth()
+
   const handleClick = () => {
     if (isConnected) {
-      disconnect()
+      // 既に接続済みなら署名認証を試行
+      if (!authenticated) {
+        signIn()
+      } else {
+        disconnect()
+      }
     } else {
       const defaultConnector = connectors[0]
       if (defaultConnector) {
@@ -36,7 +44,13 @@ export function ConnectWalletButton() {
       aria-label={isConnected ? "Disconnect Wallet" : "Connect Wallet"}
       className={cn("px-4")}
     >
-      {isConnected ? truncateAddress(address) : "Connect Wallet"}
+      {isConnected
+        ? authenticated
+          ? truncateAddress(address)
+          : siweLoading
+            ? "Signing..."
+            : "Sign In"
+        : "Connect Wallet"}
     </Button>
   )
 }
