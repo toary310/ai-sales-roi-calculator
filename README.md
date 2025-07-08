@@ -78,7 +78,15 @@ AI導入による営業効果とROIを正確に計算・可視化する次世代
    `.env.local`ファイルを編集し、必要な環境変数を設定：
 
    ```
+   # OpenAI
    OPENAI_API_KEY=your_openai_api_key_here
+
+   # Polygon Amoy RPC (フロントエンド & wagmi)
+   NEXT_PUBLIC_AMOY_RPC=https://rpc-amoy.polygon.technology
+
+   # Hardhat / デプロイ用
+   AMOY_RPC=https://rpc-amoy.polygon.technology
+   PRIVATE_KEY=your_private_key_for_deploy
    ```
 
 4. **開発サーバーの起動**
@@ -362,3 +370,11 @@ console.log('? AI分析開始:', {
 2. ROI 計算を実行し、結果ページ下部の **`Mint Dummy NFT`** ボタンをクリック
 3. MetaMask でトランザクションを承認 → トースト通知に TX リンクが表示
 4. OpenSea (testnet) または OKLink で NFT を確認
+
+### ウォレット接続 & SIWE 署名
+
+1. 画面右上の「Connect Wallet」で MetaMask 等を接続
+2. 接続後「Sign In」をクリックし、SIWE メッセージに署名
+3. 署名が完了するとアドレスが `0x1234…abcd` 形式で表示されます
+
+> 署名は一度だけ必要です。Cookie セッションで状態が保持され、リロードしてもログイン継続します。
