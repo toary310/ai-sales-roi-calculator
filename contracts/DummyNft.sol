@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract DummyNft is ERC721, Ownable {
     uint256 public tokenCounter;
 
-    constructor() ERC721("Dummy NFT", "DNFT") {
+    constructor() ERC721("Dummy NFT", "DNFT") Ownable(msg.sender) {
         tokenCounter = 0;
     }
 
