@@ -1,11 +1,11 @@
 "use client"
 
-import { WagmiProvider, createConfig, http } from "wagmi"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useState } from "react"
-import { polygonMumbai } from "wagmi/chains"
 import { metaMask } from "@wagmi/connectors"
 import type { ReactNode } from "react"
+import { useState } from "react"
+import { WagmiProvider, createConfig, http } from "wagmi"
+import { polygonAmoy } from "wagmi/chains"
 
 interface Web3ProviderProps {
   children: ReactNode
@@ -16,10 +16,10 @@ interface Web3ProviderProps {
 // --------------------
 
 export const wagmiConfig = createConfig({
-  chains: [polygonMumbai],
+  chains: [polygonAmoy],
   connectors: [metaMask()],
   transports: {
-    [polygonMumbai.id]: http(),
+    [polygonAmoy.id]: http(process.env.NEXT_PUBLIC_AMOY_RPC),
   },
   ssr: true,
 })
