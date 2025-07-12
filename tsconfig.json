@@ -1,46 +1,203 @@
+/**
+ * TypeScript設定ファイル (tsconfig.json)
+ *
+ * このファイルは、TypeScriptコンパイラの動作を制御する設定ファイルです。
+ * Next.jsプロジェクトでTypeScriptを使用する際の推奨設定が含まれています。
+ *
+ * 主な設定項目:
+ * - コンパイラオプション: TypeScriptのコンパイル動作を制御
+ * - パスマッピング: インポートパスの短縮化
+ * - ファイル包含/除外: コンパイル対象ファイルの指定
+ * - Next.js統合: Next.js特有の設定
+ *
+ * 参考: https://www.typescriptlang.org/tsconfig
+ */
 {
   "compilerOptions": {
+    /**
+     * ライブラリファイルの指定
+     *
+     * TypeScriptが利用できる型定義ファイルを指定します。
+     * これらのライブラリの型情報が利用可能になります。
+     */
     "lib": [
-      "dom",
-      "dom.iterable",
-      "es2020",
-      "es2021.string",
-      "es2022.array"
+      "dom",           // DOM操作の型定義（document, window等）
+      "dom.iterable",  // DOMの反復可能オブジェクトの型定義
+      "es2020",        // ES2020の機能の型定義
+      "es2021.string", // ES2021の文字列機能の型定義
+      "es2022.array"   // ES2022の配列機能の型定義
     ],
+
+    /**
+     * JavaScriptファイルの許可
+     *
+     * trueの場合、.jsファイルもTypeScriptで処理対象に含めます。
+     * 既存のJavaScriptファイルとTypeScriptファイルを混在させる場合に使用。
+     */
     "allowJs": true,
+
+    /**
+     * ライブラリファイルの型チェックをスキップ
+     *
+     * trueの場合、node_modules内のライブラリの型チェックを省略し、
+     * コンパイル速度を向上させます。
+     */
     "skipLibCheck": true,
+
+    /**
+     * 厳密な型チェックの有効化
+     *
+     * trueの場合、より厳密な型チェックが有効になり、
+     * 型安全性が向上します。
+     */
     "strict": true,
+
+    /**
+     * JavaScriptファイルの出力を無効化
+     *
+     * Next.jsでは独自のビルドシステムを使用するため、
+     * TypeScriptコンパイラによるJSファイル出力は不要です。
+     */
     "noEmit": true,
+
+    /**
+     * ESモジュールの相互運用性
+     *
+     * CommonJSとESモジュール間の相互運用性を向上させます。
+     * import/export文の互換性を確保します。
+     */
     "esModuleInterop": true,
+
+    /**
+     * モジュールシステムの指定
+     *
+     * "esnext"を指定することで、最新のESモジュール機能を使用できます。
+     */
     "module": "esnext",
+
+    /**
+     * モジュール解決方法の指定
+     *
+     * "bundler"を指定することで、Webpack等のバンドラーに最適化された
+     * モジュール解決を行います。
+     */
     "moduleResolution": "bundler",
+
+    /**
+     * JSONファイルのインポートを許可
+     *
+     * trueの場合、import文でJSONファイルを直接インポートできます。
+     */
     "resolveJsonModule": true,
+
+    /**
+     * モジュールの分離
+     *
+     * 各ファイルを独立したモジュールとして扱い、
+     * バンドラーでの最適化を可能にします。
+     */
     "isolatedModules": true,
+
+    /**
+     * JSXの処理方法
+     *
+     * "preserve"を指定することで、JSXをそのまま保持し、
+     * Next.jsのビルドシステムで処理します。
+     */
     "jsx": "preserve",
+
+    /**
+     * インクリメンタルコンパイルの有効化
+     *
+     * 変更されたファイルのみを再コンパイルすることで、
+     * ビルド時間を短縮します。
+     */
     "incremental": true,
+
+    /**
+     * Next.jsプラグインの設定
+     *
+     * Next.js特有の型チェックや最適化を有効にします。
+     */
     "plugins": [
       {
         "name": "next"
       }
     ],
+
+    /**
+     * ベースURLの設定
+     *
+     * 相対パスの基準となるディレクトリを指定します。
+     * "."は現在のディレクトリ（プロジェクトルート）を意味します。
+     */
     "baseUrl": ".",
+
+    /**
+     * パスマッピングの設定
+     *
+     * インポートパスを短縮化し、絶対パスでのインポートを可能にします。
+     * 例: import { Component } from '@/components/Component'
+     *     → import { Component } from './src/components/Component'
+     */
     "paths": {
       "@/*": [
         "./src/*"
       ]
     },
+
+    /**
+     * 出力JavaScriptのバージョン指定
+     *
+     * TypeScriptが出力するJavaScriptのバージョンを指定します。
+     * ES2020は、モダンブラウザでサポートされている機能を使用します。
+     */
     "target": "ES2020",
+
+    /**
+     * ファイル名の大文字小文字の一貫性を強制
+     *
+     * trueの場合、インポート時のファイル名の大文字小文字が
+     * 実際のファイル名と一致することを要求します。
+     */
     "forceConsistentCasingInFileNames": true,
+
+    /**
+     * インデックスアクセスの型チェック強化
+     *
+     * trueの場合、配列やオブジェクトのインデックスアクセス時に
+     * undefinedの可能性を考慮した型チェックを行います。
+     */
     "noUncheckedIndexedAccess": true,
+
+    /**
+     * オプショナルプロパティの厳密な型チェック
+     *
+     * trueの場合、オプショナルプロパティ（?:）の型チェックが
+     * より厳密になります。
+     */
     "exactOptionalPropertyTypes": true
   },
+
+  /**
+   * コンパイル対象ファイルの指定
+   *
+   * 以下のファイルがTypeScriptコンパイラの処理対象に含まれます。
+   */
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
+    "next-env.d.ts",     // Next.jsの型定義ファイル
+    "**/*.ts",           // 全ての.tsファイル
+    "**/*.tsx",          // 全ての.tsxファイル（React + TypeScript）
+    ".next/types/**/*.ts" // Next.jsが生成する型定義ファイル
   ],
+
+  /**
+   * コンパイル対象から除外するファイルの指定
+   *
+   * 以下のディレクトリ/ファイルはTypeScriptコンパイラの
+   * 処理対象から除外されます。
+   */
   "exclude": [
-    "node_modules"
+    "node_modules"       // npmパッケージのディレクトリ
   ]
 }

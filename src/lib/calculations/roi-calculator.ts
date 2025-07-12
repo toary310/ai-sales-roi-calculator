@@ -1,103 +1,172 @@
+/**
+ * ROI（投資収益率）計算エンジン
+ *
+ * このファイルは、AI営業ツール導入のROIを包括的に計算するエンジンを提供します。
+ * 業界ベンチマーク、企業規模、現実的な制約を考慮した精密な計算を実行し、
+ * 投資判断に必要な詳細な分析結果を生成します。
+ *
+ * 主な機能:
+ * - 業界別ベンチマークデータに基づく計算
+ * - 企業規模別の効率性・コスト・実装期間の調整
+ * - 現在の営業指標とAI導入後の予測指標の比較
+ * - ROI、回収期間、月次予測の算出
+ * - 入力データの妥当性検証と正規化
+ *
+ * 計算項目:
+ * - ROI（投資収益率）
+ * - 回収期間（月数）
+ * - 年間総削減額
+ * - 月次削減額
+ * - 効率性向上率
+ * - 売上増加額
+ * - コスト削減額
+ * - 時間削減（時間）
+ *
+ * 使用例:
+ * ```tsx
+ * const calculator = new ROICalculator(formData)
+ * const result = calculator.calculate()
+ *
+ * console.log(`ROI: ${result.roi}%`)
+ * console.log(`回収期間: ${result.paybackPeriod}ヶ月`)
+ * console.log(`年間削減額: ${result.totalSavings}円`)
+ * ```
+ */
 import { CompanySizeMultiplier, IndustryBenchmark, MonthlyProjection, ROICalculationResult, ROIFormData } from '@/types/roi'
 
 /**
  * 業界別ベンチマークデータ
- * 各業界の平均的な営業指標とAI導入効果を定義
- * これらの値は業界調査データに基づいて設定されている
+ *
+ * 各業界の平均的な営業指標とAI導入効果を定義します。
+ * これらの値は業界調査データに基づいて設定されており、
+ * より現実的で信頼性の高いROI計算を可能にします。
+ *
+ * 各業界の特徴:
+ * - IT・テクノロジー: 高い成約率、中程度の取引額、AI導入率が高い
+ * - 製造業: 中程度の成約率、高額取引、長い営業サイクル
+ * - 金融・保険: 高い成約率、中程度の取引額、短い営業サイクル
+ * - 医療・ヘルスケア: 中程度の成約率、高額取引、中程度の営業サイクル
+ * - 小売・EC: 低い成約率、低額取引、短い営業サイクル、AI導入率が最も高い
+ * - その他: デフォルト値として使用
  */
 const INDUSTRY_BENCHMARKS: Record<string, IndustryBenchmark> = {
   technology: {
     industry: 'IT・テクノロジー',
-    averageConversionRate: 25,
-    averageDealSize: 800000,
-    averageSalesCycle: 45,
-    aiAdoptionRate: 0.8,
-    expectedEfficiencyGain: 35
+    averageConversionRate: 25,    // 平均成約率25%
+    averageDealSize: 800000,      // 平均取引額80万円
+    averageSalesCycle: 45,        // 平均営業サイクル45日
+    aiAdoptionRate: 0.8,          // AI導入率80%
+    expectedEfficiencyGain: 35    // 期待効率向上率35%
   },
   manufacturing: {
     industry: '製造業',
-    averageConversionRate: 18,
-    averageDealSize: 1200000,
-    averageSalesCycle: 60,
-    aiAdoptionRate: 0.6,
-    expectedEfficiencyGain: 28
+    averageConversionRate: 18,    // 平均成約率18%
+    averageDealSize: 1200000,     // 平均取引額120万円
+    averageSalesCycle: 60,        // 平均営業サイクル60日
+    aiAdoptionRate: 0.6,          // AI導入率60%
+    expectedEfficiencyGain: 28    // 期待効率向上率28%
   },
   finance: {
     industry: '金融・保険',
-    averageConversionRate: 22,
-    averageDealSize: 600000,
-    averageSalesCycle: 35,
-    aiAdoptionRate: 0.7,
-    expectedEfficiencyGain: 32
+    averageConversionRate: 22,    // 平均成約率22%
+    averageDealSize: 600000,      // 平均取引額60万円
+    averageSalesCycle: 35,        // 平均営業サイクル35日
+    aiAdoptionRate: 0.7,          // AI導入率70%
+    expectedEfficiencyGain: 32    // 期待効率向上率32%
   },
   healthcare: {
     industry: '医療・ヘルスケア',
-    averageConversionRate: 20,
-    averageDealSize: 900000,
-    averageSalesCycle: 50,
-    aiAdoptionRate: 0.5,
-    expectedEfficiencyGain: 25
+    averageConversionRate: 20,    // 平均成約率20%
+    averageDealSize: 900000,      // 平均取引額90万円
+    averageSalesCycle: 50,        // 平均営業サイクル50日
+    aiAdoptionRate: 0.5,          // AI導入率50%
+    expectedEfficiencyGain: 25    // 期待効率向上率25%
   },
   retail: {
     industry: '小売・EC',
-    averageConversionRate: 15,
-    averageDealSize: 300000,
-    averageSalesCycle: 25,
-    aiAdoptionRate: 0.9,
-    expectedEfficiencyGain: 40
+    averageConversionRate: 15,    // 平均成約率15%
+    averageDealSize: 300000,      // 平均取引額30万円
+    averageSalesCycle: 25,        // 平均営業サイクル25日
+    aiAdoptionRate: 0.9,          // AI導入率90%
+    expectedEfficiencyGain: 40    // 期待効率向上率40%
   },
   other: {
     industry: 'その他',
-    averageConversionRate: 20,
-    averageDealSize: 500000,
-    averageSalesCycle: 40,
-    aiAdoptionRate: 0.6,
-    expectedEfficiencyGain: 30
+    averageConversionRate: 20,    // 平均成約率20%
+    averageDealSize: 500000,      // 平均取引額50万円
+    averageSalesCycle: 40,        // 平均営業サイクル40日
+    aiAdoptionRate: 0.6,          // AI導入率60%
+    expectedEfficiencyGain: 30    // 期待効率向上率30%
   }
 }
 
 /**
  * 会社規模別係数
- * 企業規模によるAI導入の効率性、コスト、実装期間の違いを反映
- * 大企業ほど効率改善は小さいが、コストは高く、実装期間は長い傾向
+ *
+ * 企業規模によるAI導入の効率性、コスト、実装期間の違いを反映します。
+ * 一般的に、大企業ほど効率改善は小さいが、コストは高く、実装期間は長い傾向があります。
+ *
+ * 各規模の特徴:
+ * - スタートアップ: 高い効率改善、低コスト、短期実装
+ * - 小企業: 中程度の効率改善、低コスト、短期実装
+ * - 中企業: 標準的な効率改善、標準コスト、標準実装期間
+ * - 大企業: 低い効率改善、高コスト、長期実装
+ * - 大手企業: 最も低い効率改善、最高コスト、最長期実装
  */
 const COMPANY_SIZE_MULTIPLIERS: Record<string, CompanySizeMultiplier> = {
   startup: {
     size: 'スタートアップ',
-    efficiencyMultiplier: 1.2,
-    costMultiplier: 0.8,
-    implementationMultiplier: 0.5
+    efficiencyMultiplier: 1.2,    // 効率改善係数120%（高い改善効果）
+    costMultiplier: 0.8,          // コスト係数80%（低コスト）
+    implementationMultiplier: 0.5 // 実装期間係数50%（短期実装）
   },
   small: {
     size: '小企業',
-    efficiencyMultiplier: 1.1,
-    costMultiplier: 0.9,
-    implementationMultiplier: 0.7
+    efficiencyMultiplier: 1.1,    // 効率改善係数110%（中程度の改善効果）
+    costMultiplier: 0.9,          // コスト係数90%（低コスト）
+    implementationMultiplier: 0.7 // 実装期間係数70%（短期実装）
   },
   medium: {
     size: '中企業',
-    efficiencyMultiplier: 1.0,
-    costMultiplier: 1.0,
-    implementationMultiplier: 1.0
+    efficiencyMultiplier: 1.0,    // 効率改善係数100%（標準的な改善効果）
+    costMultiplier: 1.0,          // コスト係数100%（標準コスト）
+    implementationMultiplier: 1.0 // 実装期間係数100%（標準実装期間）
   },
   large: {
     size: '大企業',
-    efficiencyMultiplier: 0.9,
-    costMultiplier: 1.1,
-    implementationMultiplier: 1.3
+    efficiencyMultiplier: 0.9,    // 効率改善係数90%（低い改善効果）
+    costMultiplier: 1.1,          // コスト係数110%（高コスト）
+    implementationMultiplier: 1.3 // 実装期間係数130%（長期実装）
   },
   enterprise: {
     size: '大手企業',
-    efficiencyMultiplier: 0.8,
-    costMultiplier: 1.2,
-    implementationMultiplier: 1.5
+    efficiencyMultiplier: 0.8,    // 効率改善係数80%（最も低い改善効果）
+    costMultiplier: 1.2,          // コスト係数120%（最高コスト）
+    implementationMultiplier: 1.5 // 実装期間係数150%（最長期実装）
   }
 }
 
 /**
  * ROI計算エンジンクラス
- * AI営業ツール導入のROI（投資収益率）を包括的に計算する
- * 業界ベンチマーク、企業規模、現実的な制約を考慮した精密な計算を実行
+ *
+ * AI営業ツール導入のROI（投資収益率）を包括的に計算するメインクラスです。
+ * 業界ベンチマーク、企業規模、現実的な制約を考慮した精密な計算を実行し、
+ * 投資判断に必要な詳細な分析結果を生成します。
+ *
+ * 計算の流れ:
+ * 1. 入力データの妥当性検証と正規化
+ * 2. 現在の営業指標の計算
+ * 3. AI導入後の予測指標の計算
+ * 4. AI導入コストの計算
+ * 5. ROI、回収期間、月次予測の算出
+ *
+ * 主要メソッド:
+ * - calculate(): メイン計算メソッド
+ * - calculateCurrentMetrics(): 現在の営業指標を計算
+ * - calculateProjectedMetrics(): AI導入後の予測指標を計算
+ * - calculateAICosts(): AI導入コストを計算
+ * - calculateROI(): ROIを計算
+ * - calculatePaybackPeriod(): 回収期間を計算
  */
 export class ROICalculator {
   private formData: ROIFormData              // 入力されたフォームデータ
@@ -106,6 +175,10 @@ export class ROICalculator {
 
   /**
    * ROI計算エンジンのコンストラクタ
+   *
+   * 入力データを受け取り、業界ベンチマークと企業規模係数を設定します。
+   * 入力データの妥当性検証と正規化も実行します。
+   *
    * @param formData - ユーザーが入力したROI計算用データ
    */
   constructor(formData: ROIFormData) {
@@ -119,17 +192,26 @@ export class ROICalculator {
     this.sizeMultiplier = COMPANY_SIZE_MULTIPLIERS[formData.companySize] ?? COMPANY_SIZE_MULTIPLIERS.medium!
   }
 
-  // 入力データの妥当性検証と正規化
+  /**
+   * 入力データの妥当性検証と正規化
+   *
+   * ユーザーが入力したデータが現実的な範囲内にあるかをチェックし、
+   * 異常値の場合は適切な範囲内に調整します。
+   * これにより、計算結果の信頼性を保ちます。
+   *
+   * @param formData - 検証・正規化対象のフォームデータ
+   * @returns 正規化されたフォームデータ
+   */
   private validateAndNormalizeFormData(formData: ROIFormData): ROIFormData {
     const normalized = { ...formData }
 
-    // 営業チーム規模の妥当性チェック
+    // 営業チーム規模の妥当性チェック（1人〜10,000人の範囲）
     if (normalized.salesTeamSize < 1 || normalized.salesTeamSize > 10000) {
       console.warn(`営業チーム規模が異常値です: ${normalized.salesTeamSize}人`)
       normalized.salesTeamSize = Math.max(1, Math.min(normalized.salesTeamSize, 10000))
     }
 
-    // 売上とコストの妥当性チェック
+    // 売上とコストの妥当性チェック（営業コストが売上の80%を超えないように）
     if (normalized.salesCost > normalized.monthlySales * 0.8) {
       console.warn(`営業コストが売上の80%を超えています: ${normalized.salesCost}円`)
       normalized.salesCost = normalized.monthlySales * 0.8
@@ -141,32 +223,47 @@ export class ROICalculator {
       normalized.conversionRate = Math.max(0.1, Math.min(normalized.conversionRate, 80))
     }
 
-    // 平均取引額の妥当性チェック
+    // 平均取引額の妥当性チェック（月間取引数が現実的な範囲内かチェック）
     const estimatedDeals = normalized.monthlySales / normalized.averageDealSize
     if (estimatedDeals < 0.1 || estimatedDeals > 10000) {
       console.warn(`平均取引額から算出される月間取引数が異常です: ${estimatedDeals}件`)
       normalized.averageDealSize = normalized.monthlySales / Math.max(1, Math.min(estimatedDeals, 1000))
     }
 
-    // AI改善率の妥当性チェック
+    // AI改善率の妥当性チェック（各改善率を適切な範囲内に制限）
     normalized.efficiencyImprovement = normalized.efficiencyImprovement.map(val =>
-      Math.max(0, Math.min(val, 100))
+      Math.max(0, Math.min(val, 100))  // 0% - 100%の範囲
     )
     normalized.conversionImprovement = normalized.conversionImprovement.map(val =>
-      Math.max(0, Math.min(val, 100))
+      Math.max(0, Math.min(val, 100))  // 0% - 100%の範囲
     )
     normalized.timeReduction = normalized.timeReduction.map(val =>
-      Math.max(0, Math.min(val, 90))
+      Math.max(0, Math.min(val, 90))   // 0% - 90%の範囲（100%削減は現実的でない）
     )
 
     return normalized
   }
 
-  // メイン計算メソッド
+  /**
+   * メイン計算メソッド
+   *
+   * ROI計算の全体的な流れを実行し、包括的な分析結果を返します。
+   * 現在の指標、予測指標、AIコスト、月次予測を計算し、
+   * ROI、回収期間、削減額などの最終結果を算出します。
+   *
+   * @returns 包括的なROI計算結果
+   */
   calculate(): ROICalculationResult {
+    // 現在の営業指標を計算
     const currentMetrics = this.calculateCurrentMetrics()
+
+    // AI導入後の予測指標を計算
     const projectedMetrics = this.calculateProjectedMetrics(currentMetrics)
+
+    // AI導入コストを計算
     const aiCosts = this.calculateAICosts()
+
+    // 月次予測を計算
     const monthlyProjection = this.calculateMonthlyProjection(currentMetrics, projectedMetrics, aiCosts)
 
     // 月間削減額の計算（AIコストを差し引いた実質的な削減額）
@@ -174,13 +271,15 @@ export class ROICalculator {
                           (currentMetrics.monthlyCost - projectedMetrics.monthlyCost)
     const monthlySavings = monthlyBenefit - aiCosts.monthlyCost // AIコストを差し引く
 
+    // 年間の総効果を計算
     const totalSavings = monthlyBenefit * 12 // 年間総効果（AIコスト差し引き前）
     const annualNetSavings = monthlySavings * 12 // 年間純削減額（AIコスト差し引き後）
 
-    // 🔧 修正: ROI計算は純削減額を使用（より現実的）
+    // ROI計算は純削減額を使用（より現実的）
     const roi = this.calculateROI(annualNetSavings, aiCosts.totalCostYear1)
     const paybackPeriod = this.calculatePaybackPeriod(aiCosts.totalCostYear1, monthlySavings)
 
+    // 包括的な結果を返す
     return {
       roi,
       paybackPeriod,

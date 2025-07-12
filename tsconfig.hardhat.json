@@ -1,10 +1,50 @@
+/**
+ * Hardhat用TypeScript設定ファイル (tsconfig.hardhat.json)
+ *
+ * このファイルは、Hardhatプロジェクト専用のTypeScript設定ファイルです。
+ * メインのtsconfig.jsonを拡張し、Hardhat特有の設定を追加しています。
+ *
+ * 主な設定項目:
+ * - モジュールシステム: CommonJS（Node.js環境に最適化）
+ * - 型定義: Hardhat、テストフレームワーク用の型
+ * - 対象ファイル: 設定ファイル、スクリプト、テストファイル
+ *
+ * 参考: https://hardhat.org/tutorial/typescript
+ */
 {
+  // メインのTypeScript設定を継承
+  // 基本的な設定はtsconfig.jsonから取得し、ここで上書き・追加します
   "extends": "./tsconfig.json",
+
+  // コンパイラオプションの設定
   "compilerOptions": {
+    // モジュールシステムの指定
+    // CommonJSはNode.js環境で標準的に使用されるモジュールシステムです
     "module": "commonjs",
+
+    // モジュール解決方法の指定
+    // Node.jsの標準的なモジュール解決方法を使用
     "moduleResolution": "node",
+
+    // 出力JavaScriptのバージョン指定
+    // ES2019は、Node.jsで広くサポートされている機能を使用
     "target": "es2019",
-    "types": ["node", "chai", "mocha", "hardhat"]
+
+    // 型定義ファイルの指定
+    // 以下のライブラリの型情報が利用可能になります
+    "types": [
+      "node",     // Node.jsの型定義
+      "chai",     // テストアサーションライブラリの型定義
+      "mocha",    // テストフレームワークの型定義
+      "hardhat"   // Hardhatフレームワークの型定義
+    ]
   },
-  "include": ["hardhat.config.ts", "scripts", "test"]
+
+  // コンパイル対象ファイルの指定
+  // 以下のファイルがTypeScriptコンパイラの処理対象に含まれます
+  "include": [
+    "hardhat.config.ts",  // Hardhat設定ファイル
+    "scripts",            // デプロイスクリプト等のディレクトリ
+    "test"                // テストファイルのディレクトリ
+  ]
 }
